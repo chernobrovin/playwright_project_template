@@ -9,7 +9,7 @@ The implementation is intentionally small. The task contains a single business f
 From the `e2e` directory:
 
 ```bash
-npm ci
+npm install
 npx playwright install chromium
 ```
 
