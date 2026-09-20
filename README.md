@@ -67,16 +67,17 @@ e2e/
 
 ## Configuration
 
-Default booking page:
+Default booking target:
 
 ```text
-https://book.natodi.com/barbershop-kyiv
+BOOKING_ORIGIN=https://book.natodi.com
+BOOKING_PATH=/barbershop-kyiv
 ```
 
-Override it when needed:
+Override the company path when needed:
 
 ```bash
-BOOKING_URL=https://book.natodi.com/another-company npm test
+BOOKING_PATH=/another-company npm test
 ```
 
 No Natodi password is required by the public booking tests. Credentials must not be committed if admin-side setup is later added.
