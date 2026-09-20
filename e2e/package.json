@@ -9,8 +9,7 @@
     "test:api": "playwright test src/tests/api",
     "test:headed": "playwright test src/tests/booking --headed",
     "test:reliability": "playwright test --fully-parallel --repeat-each=2",
-    "report": "playwright show-report",
-    "typecheck": "tsc --noEmit"
+    "report": "playwright show-report"
   },
   "devDependencies": {
     "@playwright/test": "^1.46.0",
