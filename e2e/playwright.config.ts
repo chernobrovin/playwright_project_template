@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const bookingUrl =
-  process.env.BOOKING_URL ?? 'https://book.natodi.com/barbershop-kyiv';
+const bookingOrigin =
+  process.env.BOOKING_ORIGIN ?? 'https://book.natodi.com';
 
 export default defineConfig({
   testDir: './src/tests',
@@ -18,7 +18,7 @@ export default defineConfig({
     ['html', { outputFolder: 'playwright-report', open: 'never' }],
   ],
   use: {
-    baseURL: bookingUrl,
+    baseURL: bookingOrigin,
     locale: 'uk-UA',
     timezoneId: 'Europe/Kyiv',
     actionTimeout: 10_000,
