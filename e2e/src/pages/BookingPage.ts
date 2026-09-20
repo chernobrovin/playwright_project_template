@@ -120,7 +120,9 @@ export class BookingPage {
   }
 
   private firstVisible(candidates: Locator[]): Locator {
-    return candidates.reduce((combined, candidate) => combined.or(candidate));
+    return candidates
+      .reduce((combined, candidate) => combined.or(candidate))
+      .first();
   }
 
   private async fillFirstAvailable(
