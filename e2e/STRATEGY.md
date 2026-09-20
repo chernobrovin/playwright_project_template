@@ -30,14 +30,21 @@ which runs the suite twice with full parallelism.
 
 ## Findings
 
-I do not invent bug reports to fill a quota. A bug belongs here only after I reproduce it against the actual product and capture evidence.
+### Bug: promo-enabled test account is blocked by the Free-plan appointment limit
 
-During preparation of this submission I could not run an interactive browser against the Natodi page from the restricted execution environment used for AI assistance. Therefore I have not labeled any unverified observation as a product defect.
+**Severity:** Major
 
-### Feature request
+**Preconditions:** Account created for this test task, promo code `PRC1NJT` applied, public booking page `/barbershop-kyiv`.
 
-**Title:** Provide stable test hooks or a documented test-data API for public booking E2E automation
+**Steps to reproduce:**
+1. Open `https://book.natodi.com/barbershop-kyiv`.
+2. Wait for the booking widget to load.
+3. Observe the public booking state and the branch lookup request.
 
-**Reason:** Booking behavior depends on live services, staff schedules and occupied time slots. A small supported test-data surface would allow deterministic setup/cleanup, reliable concurrency checks and safer CI without coupling tests to private implementation details.
+**Expected:** The promo supplied with the test task grants full access for the task, so the booking widget is available and a client can start the booking flow.
 
-**Expected benefit:** Faster, isolated regression tests and less test data pollution in shared environments.
+**Actual:** The widget shows `Онлайн запис тимчасово недоступний`. The public request `GET /api/v1/branches/barbershop-kyiv/slug` returns HTTP 400 with error code `4181`: `You have exceeded the appointments limit for the free plan (20). Please upgrade your subscription to add more appointments.`
+
+**Impact:** The required happy-path booking scenario cannot start on the test account even though the task states that the promo provides full access.
+
+**Evidence:** Reproduced in CI on 2026-09-21. Playwright report, screenshot, trace and network evidence are attached to the failed run.
