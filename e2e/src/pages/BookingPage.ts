@@ -6,24 +6,53 @@ export class BookingPage {
 
   async open(): Promise<void> {
     const bookingPath = process.env.BOOKING_PATH ?? '/barbershop-kyiv';
+
     await this.page.goto(bookingPath);
     await expect(this.page.locator('body')).toBeVisible();
+
+    const unavailableState = this.page.getByText(
+      'Онлайн запис тимчасово недоступний',
+      { exact: true },
+    );
+
+    if (await unavailableState.isVisible()) {
+      throw new Error(
+        'Booking widget is unavailable for the configured tenant. Check subscription limits and booking setup before running the booking flow.',
+      );
+    }
+
+    await expect(this.page.getByText('Ваш запис', { exact: true })).toBeVisible();
   }
 
   async selectFirstService(): Promise<void> {
-    const service = this.firstVisible([
-      this.page.getByRole('button', { name: /обрати|вибрати|записат|book|select/i }),
-      this.page.getByRole('link', { name: /обрати|вибрати|записат|book|select/i }),
-    ]);
+    const servicePicker = this.page.getByText('Оберіть послуги', { exact: true });
+
+    await expect(servicePicker).toBeVisible();
+    await servicePicker.click();
+
+    const serviceName = process.env.SERVICE_NAME;
+    const service = serviceName
+      ? this.page.getByText(serviceName, { exact: true })
+      : this.page
+          .locator('app-list-items-by-category .list-container')
+          .locator(':scope > *')
+          .filter({ hasNot: this.page.locator('app-empty-state') })
+          .first();
 
     await expect(service).toBeVisible();
     await service.click();
   }
 
   async selectFirstAvailableSlot(): Promise<string> {
-    const slot = this.firstVisible([
+    const timePicker = this.page.getByText('Оберіть час', { exact: true });
+
+    if (await timePicker.isVisible()) {
+      await timePicker.click();
+    }
+
+    const slot = this.firstMatch([
       this.page.getByRole('button', { name: /^\d{1,2}:\d{2}$/ }),
-      this.page.locator('button').filter({ hasText: /^\s*\d{1,2}:\d{2}\s*$/ }),
+      this.page.getByText(/^\d{1,2}:\d{2}$/, { exact: true }),
     ]);
 
     await expect(slot).toBeVisible();
@@ -34,7 +63,7 @@ export class BookingPage {
   }
 
   async fillCustomer(customer: Customer): Promise<void> {
-    await this.fillFirstAvailable(
+    await this.fillFirstMatch(
       [
         this.page.getByLabel(/ім['’]?я|name/i),
         this.page.getByPlaceholder(/ім['’]?я|name/i),
@@ -43,7 +72,7 @@ export class BookingPage {
       customer.name,
     );
 
-    await this.fillFirstAvailable(
+    await this.fillFirstMatch(
       [
         this.page.getByLabel(/телефон|phone/i),
         this.page.getByPlaceholder(/телефон|phone/i),
@@ -52,7 +81,7 @@ export class BookingPage {
       customer.phone,
     );
 
-    const email = this.firstVisible([
+    const email = this.firstMatch([
       this.page.getByLabel(/email|e-mail|пошт/i),
       this.page.getByPlaceholder(/email|e-mail|пошт/i),
       this.page.locator('input[type="email"]'),
@@ -64,9 +93,9 @@ export class BookingPage {
   }
 
   async submitBooking(): Promise<void> {
-    const submit = this.firstVisible([
+    const submit = this.firstMatch([
       this.page.getByRole('button', {
-        name: /підтверд|записат|забронювати|confirm|book/i,
+        name: /продовжити|підтверд|записат|забронювати|confirm|book/i,
       }),
       this.page.locator('button[type="submit"]'),
     ]);
@@ -77,14 +106,16 @@ export class BookingPage {
 
   async expectConfirmation(): Promise<void> {
     await expect(
-      this.page.getByText(
-        /успіш|підтвердж|запис створено|бронювання|confirmed|success/i,
-      ).first(),
+      this.page
+        .getByText(
+          /успіш|підтвердж|запис створено|бронювання|confirmed|success/i,
+        )
+        .first(),
     ).toBeVisible();
   }
 
   async fillInvalidPhone(phone: string): Promise<void> {
-    const phoneInput = this.firstVisible([
+    const phoneInput = this.firstMatch([
       this.page.getByLabel(/телефон|phone/i),
       this.page.getByPlaceholder(/телефон|phone/i),
       this.page.locator('input[type="tel"]'),
@@ -103,11 +134,11 @@ export class BookingPage {
   }
 
   async expectRequiredFieldValidation(): Promise<void> {
-    const validation = this.page
-      .getByText(/обов['’]?язков|required|заповніть|вкажіть/i)
-      .first();
-
-    await expect(validation).toBeVisible();
+    await expect(
+      this.page
+        .getByText(/обов['’]?язков|required|заповніть|вкажіть/i)
+        .first(),
+    ).toBeVisible();
   }
 
   async expectNoConfirmation(): Promise<void> {
@@ -120,17 +151,17 @@ export class BookingPage {
     ).toBeHidden();
   }
 
-  private firstVisible(candidates: Locator[]): Locator {
+  private firstMatch(candidates: Locator[]): Locator {
     return candidates
       .reduce((combined, candidate) => combined.or(candidate))
       .first();
   }
 
-  private async fillFirstAvailable(
+  private async fillFirstMatch(
     candidates: Locator[],
     value: string,
   ): Promise<void> {
-    const input = this.firstVisible(candidates);
+    const input = this.firstMatch(candidates);
     await expect(input).toBeVisible();
     await input.fill(value);
   }
