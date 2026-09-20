@@ -9,7 +9,7 @@ The AI execution environment used during preparation could not establish an inte
 ## Commands
 
 ```bash
-npm ci
+npm install
 npx playwright install chromium
 npm test
 npm run test:reliability
