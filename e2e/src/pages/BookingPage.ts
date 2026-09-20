@@ -5,7 +5,8 @@ export class BookingPage {
   constructor(private readonly page: Page) {}
 
   async open(): Promise<void> {
-    await this.page.goto('/');
+    const bookingPath = process.env.BOOKING_PATH ?? '/barbershop-kyiv';
+    await this.page.goto(bookingPath);
     await expect(this.page.locator('body')).toBeVisible();
   }
 
