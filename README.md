@@ -6,20 +6,14 @@ The implementation is intentionally small. The task contains a single business f
 
 ## Quick start
 
-From the `e2e` directory:
+From the `e2e` directory, the suite can be installed and run with two commands:
 
 ```bash
-npm install
-npx playwright install chromium
-```
-
-Run all tests:
-
-```bash
+npm install && npx playwright install chromium
 npm test
 ```
 
-Those are the only two setup/run commands required after cloning if Chromium is already available in the environment. The CI workflow installs the browser automatically.
+The CI workflow performs the same setup automatically.
 
 ## Useful commands
 
