@@ -29,7 +29,6 @@ npm run test:api
 npm run test:headed
 npm run test:reliability
 npm run report
-npm run typecheck
 ```
 
 `test:reliability` runs tests twice with full parallelism. It is intended to expose shared state and order dependencies.
