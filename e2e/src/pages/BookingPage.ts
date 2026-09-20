@@ -1,186 +1,148 @@
-import { expect, type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page, type Response } from '@playwright/test';
 import type { Customer } from '../test-data/customer.factory';
 
-interface ApiErrorResponse {
-  error_code?: number;
-  message?: string;
+export interface BookingSlot {
+  date: string;
+  time: string;
+}
+
+export interface Appointment {
+  id: string;
+  status: string;
+  start_at: string;
+  duration: number;
+  price: number;
+  client: { first_name: string };
+  services: Array<{ title: string; quantity: number }>;
+  branch: { slug: string };
 }
 
 export class BookingPage {
-  constructor(private readonly page: Page) {}
+  readonly createdAppointmentIds: string[] = [];
+  readonly bookingPath = process.env.BOOKING_PATH ?? '/qa-barbershop-0921';
+  readonly serviceName = process.env.SERVICE_NAME ?? 'QA Haircut';
+  readonly nameInput: Locator;
+  readonly phoneInput: Locator;
+  readonly submitButton: Locator;
+  readonly confirmation: Locator;
+
+  constructor(private readonly page: Page) {
+    this.nameInput = page.getByRole('textbox', { name: "Ім'я *", exact: true });
+    this.phoneInput = page.getByRole('textbox', { name: 'Телефон *', exact: true });
+    this.submitButton = page.getByRole('button', { name: 'Записатись', exact: true });
+    this.confirmation = page.getByText('Ви успішно записалися!', { exact: true });
+  }
 
   async open(): Promise<void> {
-    const bookingPath = process.env.BOOKING_PATH ?? '/barbershop-kyiv';
-    const slug = bookingPath.replace(/^\/+|\/+$/g, '');
-
-    const branchResponse = this.page.waitForResponse(
-      (response) =>
-        response.request().method() === 'GET' &&
-        response.url().includes(`/api/v1/branches/${slug}/slug`),
-    );
-
-    await this.page.goto(bookingPath);
-    const response = await branchResponse;
-
+    const slug = this.bookingPath.replace(/^\/+|\/+$/g, '');
+    const [response] = await Promise.all([
+      this.page.waitForResponse((r) =>
+        r.request().method() === 'GET' &&
+        new URL(r.url()).pathname === `/api/v1/branches/${slug}/slug`,
+      ),
+      this.page.goto(this.bookingPath),
+    ]);
     if (!response.ok()) {
-      let details = `HTTP ${response.status()}`;
-
-      try {
-        const body = (await response.json()) as ApiErrorResponse;
-        const errorCode =
-          body.error_code === undefined ? '' : `, error_code ${body.error_code}`;
-        const message = body.message ? `: ${body.message}` : '';
-        details += `${errorCode}${message}`;
-      } catch {
-        // The HTTP status is still enough to diagnose an unavailable tenant.
-      }
-
+      const body = await response.json().catch(() => ({}));
+      const detail = body.detail ?? body;
       throw new Error(
-        `Booking environment precondition failed for "${slug}": ${details}`,
+        `Booking tenant "${slug}" unavailable: HTTP ${response.status()}, ` +
+        `code ${detail.error_code ?? 'unknown'}: ${detail.message ?? 'no details'}`,
       );
     }
-
     await expect(this.page.getByText('Ваш запис', { exact: true })).toBeVisible();
   }
 
-  async selectFirstService(): Promise<void> {
-    const servicePicker = this.page.getByText('Оберіть послуги', { exact: true });
-
-    await expect(servicePicker).toBeVisible();
-    await servicePicker.click();
-
-    const serviceName = process.env.SERVICE_NAME;
-    const service = serviceName
-      ? this.page.getByText(serviceName, { exact: true })
-      : this.page
-          .locator('app-list-items-by-category')
-          .getByRole('button')
-          .first();
-
-    await expect(service).toBeVisible();
-    await service.click();
+  async selectService(): Promise<void> {
+    await this.page.getByText('Оберіть послуги', { exact: true }).click();
+    await this.page.getByRole('textbox', { name: 'Введіть назву послуги' }).fill(this.serviceName);
+    // The app's add button has no accessible name. Scope it to the named card.
+    const card = this.page.locator('app-short-info-card').filter({
+      has: this.page.getByText(this.serviceName, { exact: true }),
+    });
+    await expect(card).toHaveCount(1);
+    await card.getByRole('button').click();
+    await expect(this.page.getByRole('contentinfo')).toContainText('1 послуга');
   }
 
-  async selectFirstAvailableSlot(): Promise<string> {
-    const timePicker = this.page.getByText('Оберіть час', { exact: true });
-
-    if (await timePicker.isVisible()) {
-      await timePicker.click();
-    }
-
-    const slot = this.firstMatch([
-      this.page.getByRole('button', { name: /^\d{1,2}:\d{2}$/ }),
-      this.page.getByText(/^\d{1,2}:\d{2}$/, { exact: true }),
+  async selectAvailableSlot(lane: number, lanes: number): Promise<BookingSlot> {
+    const [datesResponse] = await Promise.all([
+      this.page.waitForResponse((r) => new URL(r.url()).pathname === '/api/v1/book_dates/dates'),
+      this.page.getByText('Дата та час', { exact: true }).click(),
     ]);
+    const dates = await this.readAvailability(datesResponse);
+    const today = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Europe/Kyiv', year: 'numeric', month: '2-digit', day: '2-digit',
+    }).format(new Date());
+    const limit = new Date(`${today}T12:00:00Z`);
+    limit.setUTCDate(limit.getUTCDate() + 14);
+    const endDate = limit.toISOString().slice(0, 10);
+    // Partition calendar dates, not array positions: fully booked dates cannot shift lanes.
+    const candidates = dates.filter((date) => date > today && date <= endDate)
+      .sort().filter((date) => Math.floor(Date.parse(date) / 86_400_000) % lanes === lane);
 
-    await expect(slot).toBeVisible();
-    const label = (await slot.innerText()).trim();
-    await slot.click();
-
-    return label;
+    for (const date of candidates) {
+      const label = new Intl.DateTimeFormat('uk-UA', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC',
+      }).format(new Date(`${date}T12:00:00Z`));
+      const day = this.page.getByRole('cell', { name: label, exact: true });
+      if (await day.count() === 0) {
+        await this.page.getByRole('button', { name: 'Next Month', exact: true }).click();
+      }
+      const [timesResponse] = await Promise.all([
+        this.page.waitForResponse((r) => {
+          const url = new URL(r.url());
+          return url.pathname === '/api/v1/book_dates/times' && url.searchParams.get('book_date') === date;
+        }),
+        day.click(),
+      ]);
+      const times = await this.readAvailability(timesResponse);
+      if (times.length === 0) continue;
+      const time = times[0].slice(0, 5);
+      await this.page.getByText(time, { exact: true }).click();
+      await this.page.getByRole('contentinfo').getByText('Продовжити', { exact: true }).click();
+      await expect(this.page.getByText('Ваш запис', { exact: true })).toBeVisible();
+      const [validation] = await Promise.all([
+        this.page.waitForResponse((r) =>
+          r.request().method() === 'POST' && new URL(r.url()).pathname === '/api/v1/appointments/validate',
+        ),
+        this.page.getByRole('button', { name: 'Продовжити', exact: true }).click(),
+      ]);
+      expect(validation.status(), `Slot ${date} ${time} rejected: ${await validation.text()}`).toBe(200);
+      await expect(this.nameInput).toBeVisible();
+      return { date, time };
+    }
+    throw new Error(`No available slot for lane ${lane + 1}/${lanes} between ${today} and ${endDate}. Check tenant working hours.`);
   }
 
   async fillCustomer(customer: Customer): Promise<void> {
-    await this.fillFirstMatch(
-      [
-        this.page.getByLabel(/ім['’]?я|name/i),
-        this.page.getByPlaceholder(/ім['’]?я|name/i),
-        this.page.locator('input[name*="name" i]'),
-      ],
-      customer.name,
-    );
+    await this.nameInput.fill(customer.name);
+    // Natodi adds +38 itself; passing an international number duplicates the prefix.
+    await this.phoneInput.fill(customer.nationalPhone);
+    await this.page.getByRole('textbox', { name: 'email@example.com', exact: true }).fill(customer.email);
+  }
 
-    await this.fillFirstMatch(
-      [
-        this.page.getByLabel(/телефон|phone/i),
-        this.page.getByPlaceholder(/телефон|phone/i),
-        this.page.locator('input[type="tel"]'),
-      ],
-      customer.phone,
-    );
-
-    const email = this.firstMatch([
-      this.page.getByLabel(/email|e-mail|пошт/i),
-      this.page.getByPlaceholder(/email|e-mail|пошт/i),
-      this.page.locator('input[type="email"]'),
+  async submit(): Promise<Appointment> {
+    const [response] = await Promise.all([
+      this.page.waitForResponse((r) =>
+        r.request().method() === 'POST' && new URL(r.url()).pathname === '/api/v1/appointments/',
+      ),
+      this.submitButton.click(),
     ]);
+    expect(response.status(), 'Appointment creation response').toBe(200);
+    const body = await response.json() as { data: Appointment };
+    expect(body.data.id).toMatch(/^[0-9a-f-]{36}$/i);
+    this.createdAppointmentIds.push(body.data.id);
+    return body.data;
+  }
 
-    if (await email.count()) {
-      await email.fill(customer.email);
+  private async readAvailability(response: Response): Promise<string[]> {
+    expect(response.status(), 'Availability response').toBe(200);
+    const body: { data?: unknown } = await response.json();
+    if (!Array.isArray(body.data) || !body.data.every((item): item is string => typeof item === 'string')) {
+      throw new Error('Availability response must contain a string array in data');
     }
-  }
 
-  async submitBooking(): Promise<void> {
-    const submit = this.firstMatch([
-      this.page.getByRole('button', {
-        name: /продовжити|підтверд|записат|забронювати|confirm|book/i,
-      }),
-      this.page.locator('button[type="submit"]'),
-    ]);
-
-    await expect(submit).toBeEnabled();
-    await submit.click();
-  }
-
-  async expectConfirmation(): Promise<void> {
-    await expect(
-      this.page
-        .getByText(
-          /успіш|підтвердж|запис створено|бронювання|confirmed|success/i,
-        )
-        .first(),
-    ).toBeVisible();
-  }
-
-  async fillInvalidPhone(phone: string): Promise<void> {
-    const phoneInput = this.firstMatch([
-      this.page.getByLabel(/телефон|phone/i),
-      this.page.getByPlaceholder(/телефон|phone/i),
-      this.page.locator('input[type="tel"]'),
-    ]);
-
-    await expect(phoneInput).toBeVisible();
-    await phoneInput.fill(phone);
-  }
-
-  async expectPhoneValidation(): Promise<void> {
-    await expect(
-      this.page
-        .getByText(/телефон.*(невір|некорект|invalid)|invalid.*phone/i)
-        .first(),
-    ).toBeVisible();
-  }
-
-  async expectRequiredFieldValidation(): Promise<void> {
-    await expect(
-      this.page
-        .getByText(/обов['’]?язков|required|заповніть|вкажіть/i)
-        .first(),
-    ).toBeVisible();
-  }
-
-  async expectNoConfirmation(): Promise<void> {
-    await expect(
-      this.page
-        .getByText(
-          /успіш|підтвердж|запис створено|бронювання.*створ|confirmed|success/i,
-        )
-        .first(),
-    ).toBeHidden();
-  }
-
-  private firstMatch(candidates: Locator[]): Locator {
-    return candidates
-      .reduce((combined, candidate) => combined.or(candidate))
-      .first();
-  }
-
-  private async fillFirstMatch(
-    candidates: Locator[],
-    value: string,
-  ): Promise<void> {
-    const input = this.firstMatch(candidates);
-    await expect(input).toBeVisible();
-    await input.fill(value);
+    return body.data;
   }
 }

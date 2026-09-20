@@ -1,23 +1,22 @@
 # Natodi QA Test Task
 
-Playwright + TypeScript test task for the Natodi public booking flow.
+Five focused Playwright + TypeScript tests: three checks of the real Natodi booking UI and two public REST API checks.
 
-The implementation is intentionally small. The task contains a single business flow, so the project uses one page object, one focused fixture, isolated test data and Playwright's built-in API client/reporting rather than a large generic framework.
+Public booking: https://book.natodi.com/qa-barbershop-0921
 
 ## Quick start
 
-From the `e2e` directory, the suite can be installed and run with two commands:
+Prerequisite: Node.js 22 or newer. From `e2e`, install and run with two commands:
 
 ```bash
-npm install && npx playwright install chromium
+npm ci && npx playwright install chromium
 npm test
 ```
 
-The CI workflow performs the same setup automatically.
-
-## Useful commands
+On Windows PowerShell 5, run the two parts of the first line separately. Linux CI installs Chromium system dependencies with `--with-deps`.
 
 ```bash
+npm run typecheck
 npm run test:ui
 npm run test:api
 npm run test:headed
@@ -25,69 +24,58 @@ npm run test:reliability
 npm run report
 ```
 
-`test:reliability` runs tests twice with full parallelism. It is intended to expose shared state and order dependencies.
+The reliability configuration runs the whole suite twice with two workers, full parallelism, and zero retries. CI runs type checking, the normal suite, and the reliability suite, then uploads both HTML reports and any failure evidence.
 
-## Project structure
+## Coverage
+
+- A client selects `QA Haircut`, an available future slot, and valid synthetic contact details. The test checks the success page and persisted appointment, including client, service, date, time, price, and duration.
+- An incomplete phone number shows validation feedback and prevents submission.
+- A missing name prevents submission when the remaining contact fields are valid.
+- JSONPlaceholder returns a successful todo with the expected schema and values.
+- An unknown todo returns HTTP 404 and an empty response object.
+
+These REST checks use a separate public API, as allowed by the assignment. The UI happy path additionally verifies persistence through Natodi's API.
+
+## Structure and isolation
 
 ```text
 e2e/
-  src/
-    fixtures/
-      booking.fixture.ts
-    pages/
-      BookingPage.ts
-    test-data/
-      customer.factory.ts
-    tests/
-      api/
-        public-api.spec.ts
-      booking/
-        booking.spec.ts
+  src/fixtures/booking.fixture.ts
+  src/pages/BookingPage.ts
+  src/test-data/customer.factory.ts
+  src/tests/booking/booking.spec.ts
+  src/tests/api/public-api.spec.ts
   playwright.config.ts
+  playwright.reliability.config.ts
   STRATEGY.md
   AI.md
   RUN_REPORT.md
 ```
 
-### Why this structure
+The page object owns observed UI interactions. Specs express business assertions. A fixture records and deletes only appointments created by its own test, including after an assertion failure, and checks that they return 404 afterward. Synthetic client profiles can remain in this dedicated tenant; no broad customer deletion is attempted.
 
-- **Tests describe behavior.** Assertions stay in specs where a reviewer can see the business expectation.
-- **Page object owns interactions and locators.** Booking UI mechanics are centralized without hiding test intent.
-- **Fixtures provide composition, not setup magic.** The custom fixture only constructs `BookingPage`.
-- **Test data is generated per test.** No test depends on data created by another test.
-- **No generic BasePage or utility bucket.** Five tests do not justify a large abstraction layer.
-- **Playwright's request fixture is used for API tests.** No second HTTP client is introduced.
-- **HTML report, traces and screenshots use Playwright built-ins.** This keeps the repository easy to run and review.
+Tests generate unique names, reserved `example.com` email addresses, and non-subscriber phone numbers. No admin credentials are needed. Service selection uses accessible locators and visible text; the unnamed add button is scoped to the matching `app-short-info-card`.
 
-## Configuration
+Availability comes from the live UI requests. Tests use future dates within 14 days in `Europe/Kyiv`; calendar dates are partitioned by scenario and repetition so concurrent checks do not compete for a slot. No fixed sleeps, skipped tests, or retries conceal failures. Separate CI runs are serialized because they share a tenant. Avoid running a local suite while CI is active.
 
-Default booking target:
+## Configuration and prerequisites
+
+Defaults:
 
 ```text
 BOOKING_ORIGIN=https://book.natodi.com
-BOOKING_PATH=/barbershop-kyiv
+BOOKING_PATH=/qa-barbershop-0921
+SERVICE_NAME=QA Haircut
 ```
 
-Override the company path when needed:
+Set environment variables to override these values. `.env.example` documents the names; the runner does not automatically load `.env` files. A replacement tenant must provide a service priced at 100 UAH with a 30-minute duration and an assigned employee with available hours.
 
-```bash
-BOOKING_PATH=/another-company npm test
-```
+The configured employee works 09:00-18:00 daily through October 31, 2026. Extend the schedule before that date. The live tenant must have an active plan allowing bookings; its initial Pro period is seven days from September 21, 2026. These are external prerequisites, not guarantees of indefinite availability. A blocked tenant fails with the API status and error details.
 
-No Natodi password is required by the public booking tests. Credentials must not be committed if admin-side setup is later added.
+## Reports and notes
 
-## Selector strategy
+`npm test` writes `e2e/playwright-report/index.html`. Failures retain a trace, screenshot, and video. CI puts the repeated run in a separate `reliability-report` directory. Download the `playwright-reports` artifact from the linked run in [RUN_REPORT.md](e2e/RUN_REPORT.md), extract it, and open the relevant `index.html`.
 
-The page object prefers accessible locators such as `getByRole`, `getByLabel` and `getByPlaceholder`. Text matching is limited to stable user-visible booking concepts. CSS/XPath tied to layout is avoided.
-
-## Reporting
-
-A normal run writes a Playwright HTML report to `playwright-report/`. On failures the configuration retains a trace, screenshot and video.
-
-The repository also contains `RUN_REPORT.md` with the execution record and any environment limitation observed while preparing the task.
-
-## Judgment documents
-
-- [STRATEGY.md](e2e/STRATEGY.md)
-- [AI.md](e2e/AI.md)
-- [RUN_REPORT.md](e2e/RUN_REPORT.md)
+- [Test strategy and confirmed findings](e2e/STRATEGY.md)
+- [AI contribution and corrected mistakes](e2e/AI.md)
+- [Execution evidence and environment limits](e2e/RUN_REPORT.md)

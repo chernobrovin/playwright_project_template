@@ -1,54 +1,45 @@
 # Test Run Report
 
-## Latest verified run
+## Verified local execution
 
-Environment: GitHub Actions, Ubuntu 24.04, Node.js 22, Chromium via Playwright.
+Date: September 21, 2026 (Europe/Kyiv). Environment: Windows, Node.js 22.14.0, npm 10.9.2, Playwright 1.63.0, Chromium, Ukrainian UI.
 
-Result:
+Target: https://book.natodi.com/qa-barbershop-0921
 
-- API tests: **2 passed**
-- Booking UI tests: **3 blocked/failed at the environment precondition**
-- Type/test discovery: **passed**
-- Playwright HTML report and failure artifacts: **generated successfully**
+| Check | Result |
+| --- | --- |
+| `npm run typecheck` | Passed |
+| `npm test` | 5 passed in 9.2 seconds: 3 UI and 2 API |
+| `npm run test:reliability` | 10 passed in 19.8 seconds: all five cases repeated twice |
+| Parallel workers / retries | 2 / 0 |
+| Appointment teardown | Created records deleted; subsequent GET returns 404 |
 
-The booking tests reached the real public page `https://book.natodi.com/barbershop-kyiv`. The page currently renders `Онлайн запис тимчасово недоступний`.
+The normal run passed immediately after the reliability run, confirming that teardown permits the next run. No tests were skipped or marked as expected failures.
 
-The trace shows the underlying request:
+The happy path verified the actual success screen, appointment identity, client name, selected date/time, service, 100 UAH price, and 30-minute duration. A separate GET verified persisted data before fixture teardown. The HTML report includes `created-appointment` and `appointment-cleanup` attachments. Validation cases reached the real contact form and asserted disabled submission.
 
-```text
-GET https://api.natodi.com/api/v1/branches/barbershop-kyiv/slug
-HTTP 400
-error_code: 4181
-You have exceeded the appointments limit for the free plan (20).
-Please upgrade your subscription to add more appointments.
-```
+## CI and report access
 
-This conflicts with the test-task precondition that promo code `PRC1NJT` provides full access for the duration of the task. I kept the failed result instead of masking the environment/product state with a skip.
+The [Playwright workflow](../.github/workflows/playwright.yml) runs dependency installation, TypeScript checking, the five-test suite, and the ten-execution reliability suite on Ubuntu with Node.js 22. Download `playwright-reports` from the corresponding [GitHub Actions run](https://github.com/chernobrovin/playwright_project_template/actions/workflows/playwright.yml?query=branch%3Anatodi-test-task), extract it, and open either HTML report. Artifacts are retained for 14 days. The [pull request](https://github.com/chernobrovin/playwright_project_template/pull/1) shows the current commit's checks.
 
-## Commands
+Local report paths, relative to `e2e`:
 
-The repository can be installed and executed with two commands:
+- `playwright-report/index.html`
+- `reliability-report/index.html`
+- `test-results/` and `reliability-results/` contain any failure evidence.
 
-```bash
-npm install && npx playwright install chromium
-npm test
-```
+Traces, screenshots, and video are retained on failures without enabling retries. Reports are generated artifacts and are not committed with application credentials or browser session state.
 
-Reliability check after the booking account is unblocked:
+## Setup and remaining external limits
 
-```bash
-npm run test:reliability
-```
+The old company deletion was confirmed by Natodi's UI. A new alias account was registered, the supplied promo was applied, and the user completed the 1 UAH Pro activation. `QA Haircut` is assigned to the employee; public booking is enabled. Working hours are 09:00-18:00 every day through October 31, 2026. The booking page and a complete real appointment were verified.
 
-## Report locations
+The registration flow did not present an email-confirmation step, and no confirmation email was found. Access and booking work, but email verification is not claimed. Optional Telegram integration and optional street address were left unset.
 
-```text
-playwright-report/index.html
-test-results/
-```
+The initial Pro period is seven days. Continued booking availability depends on the tenant's subscription and schedule. This report does not guarantee indefinite access or establish that a separate Free route is unavailable.
 
-Failures retain screenshot and video evidence. A trace is retained on the first retry.
+## Failures investigated before the final runs
 
-## Note
+The earlier implementation targeted `/barbershop-kyiv` without proving ownership. Its plan-limit response was incorrectly attributed to the test account. The suite now uses the new account's verified slug.
 
-The API checks are green. The UI failure is not being reported as a passing run because the required booking flow is currently unavailable on the supplied test tenant.
+Early live runs exposed shared-slot conflicts and an incorrect repetition count in worker configuration. Date partitioning, explicit reliability configuration, and verified per-test appointment deletion resolved the observed test failures. They were not hidden with sleeps, retries, or skips. Product findings and their limits are documented in [STRATEGY.md](STRATEGY.md).

@@ -1,50 +1,41 @@
 # Test Strategy
 
-## What I would automate and what I would keep manual
+## Automation and manual work
 
-I would automate stable, repeatable, high-risk behavior with a clear expected result. For this product that includes booking creation, availability and double-booking protection, appointment rescheduling/cancellation, working-hour and staff availability rules, permissions, API contracts, notification triggers, and deterministic calculations.
+Automate stable, consequential rules: booking, cancellation, slot conflicts, working hours, permissions, API contracts, notification triggers, and price calculations. Keep requirement analysis, exploration, usability, and ambiguous behavior primarily manual. Automate critical checks before production once their contracts stabilize. This submission covers one real booking, two form negatives, and successful/negative public API responses with schema assertions.
 
-I would keep early feature exploration, ambiguous requirements, usability, visual quality, unusual device behavior, and discovery of new edge cases primarily manual. AI can help propose risks and candidate scenarios, but a QA engineer should validate them against the product and business rules before they become regression tests.
+AI can propose coverage changes from code, contracts, documentation, and completed issues. QA reviews each proposal; rejected suggestions become explicit instructions and examples. A separate investigation agent can classify failures with evidence and confidence. Humans approve issue creation and fixes. This is a proposed review process, not a multi-agent system implemented here.
 
-I would use a stability gate rather than "automate only after production". While a feature is changing quickly, manual and AI-assisted exploration gives faster feedback and avoids disposable automation. Once behavior and contracts stabilize, critical checks can be automated before release. After production validation, proven scenarios become part of the long-lived regression suite.
+## Time and repeatability
 
-For an established product I would add an AI-assisted coverage loop. A scheduled agent can review production code changes, OpenAPI, Confluence and completed Jira work, then propose tests to add, update or remove. A QA engineer approves or rejects every proposal. Rejections are captured as feedback that updates the agent's rules and examples. This is feedback-driven agent calibration, not model fine-tuning.
+Use a dedicated tenant, controlled working hours, and `Europe/Kyiv`. Discover availability within 14 future days and partition calendar dates by scenario and repetition. Generate unique synthetic contacts; assert the selected slot and persisted appointment. Fixture teardown deletes only appointments created by that test and verifies HTTP 404. Synthetic client profiles remain. Avoid overlapping local and CI runs; CI serializes its own runs.
 
-After execution, a second agent can investigate failures using Playwright evidence, logs, code, API documentation, database evidence and recent changes. It returns a classification such as product bug, test issue, data issue, environment issue or inconclusive, with evidence and confidence. A human confirms the result before a bug is filed or a test fix is merged. Suggested test fixes should go through a branch/PR and normal review.
+Use no fixed sleeps or hidden retries. Run all tests twice with two workers. A controlled environment should also support data seeding and a backend clock for time boundaries; a browser clock cannot freeze server availability. Extend this tenant's schedule beyond October 31, 2026 and maintain booking access before future runs.
 
-## Making time-dependent tests deterministic
+## Confirmed findings
 
-I would not hardcode "tomorrow at 10:00".
+Verified September 21, 2026, Chromium, Ukrainian Natodi UI.
 
-For E2E booking tests I would use a dedicated test tenant with controlled working hours and a fixed timezone. The test discovers a valid slot inside a bounded future window, stores the exact selected value in the test, and uses unique client data. Tests must not depend on records created by another test.
+### 1. A trial labeled free opens a paid checkout
 
-In a proper test environment I would create and clean up bookings through setup APIs so each test starts from a known state. For rules that depend on the current date, the strongest solution is a controllable backend clock or deterministic scheduling seed. Playwright's browser clock helps with client-side date logic, but it does not freeze Natodi's backend availability by itself.
+**Severity:** Minor, pricing clarity.
 
-I would verify isolation explicitly with:
+**Steps:** Complete registration, apply the supplied promo, select `7 днів безкоштовно`, then `Отримати доступ`.
 
-```bash
-npm run test:reliability
-```
+**Expected:** A free trial starts without payment or clearly explains any verification charge and subsequent billing before checkout. Repeated tariff cards show consistent prices.
 
-which runs the suite twice with full parallelism.
+**Actual:** The card says both `7 днів безкоштовно` and `1.00 грн`; checkout requests `Сплатити 1,00грн` for `Natodi Pro subscription`. Duplicate cards below retain their original prices after the upper cards change to 1 UAH.
 
-## Findings
+**Impact:** The activation cost is unclear. A payment was required on this selected route. Availability of a separate Free-plan route remains unverified; this is not evidence that Free is unavailable.
 
-### Bug: promo-enabled test account is blocked by the Free-plan appointment limit
+### 2. Pasting an international phone number changes its digits
 
-**Severity:** Major
+**Severity:** Major, incorrect booking contact data.
 
-**Preconditions:** Account created for this test task, promo code `PRC1NJT` applied, public booking page `/barbershop-kyiv`.
+**Steps:** Reach booking contacts and paste synthetic `+380000000001` into `Телефон *`.
 
-**Steps to reproduce:**
-1. Open `https://book.natodi.com/barbershop-kyiv`.
-2. Wait for the booking widget to load.
-3. Observe the public booking state and the branch lookup request.
+**Expected:** Preserve and format the same phone number, or reject an unsupported format clearly.
 
-**Expected:** The promo supplied with the test task grants full access for the task, so the booking widget is available and a client can start the booking flow.
+**Actual:** The field becomes `+38 (380) 000-0000`, duplicating part of the country prefix and dropping trailing digits. Entering national digits `0000000001` instead produces the intended `+38 (000) 000-0001`.
 
-**Actual:** The widget shows `Онлайн запис тимчасово недоступний`. The public request `GET /api/v1/branches/barbershop-kyiv/slug` returns HTTP 400 with error code `4181`: `You have exceeded the appointments limit for the free plan (20). Please upgrade your subscription to add more appointments.`
-
-**Impact:** The required happy-path booking scenario cannot start on the test account even though the task states that the promo provides full access.
-
-**Evidence:** Reproduced in CI on 2026-09-21. Playwright report, screenshot, trace and network evidence are attached to the failed run.
+**Impact:** A pasted contact number can identify the wrong recipient. The suite uses national digits as a documented workaround; this does not resolve the product defect.

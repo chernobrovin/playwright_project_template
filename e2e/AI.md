@@ -2,43 +2,30 @@
 
 ## What I delegated
 
-I used AI to review my older Playwright framework, compare it with the requirements of this task, challenge the amount of abstraction needed, draft edge-case candidates for the booking flow, review the selector strategy, and perform a second-pass review for shared state, time assumptions and unnecessary dependencies.
+I used AI to compare an earlier Playwright framework with the task, draft and revise the tests, inspect the live UI, perform the requested account setup, run the suite, and investigate failures. AI also drafted the README, strategy, and execution report. The existing framework was a reference for design experience; this submission uses a small standalone structure.
 
-I also used AI to draft the first versions of this README, STRATEGY.md and the API schema guard. I reviewed and edited the result before keeping it.
+## What was rewritten and why
 
-I did not treat generated locators or product behavior as facts. Product-specific assumptions require verification against the live application.
+The implementation and the revisions were AI-assisted. I do not claim that the code below was typed without AI. My role was to set the scope, challenge the approach, authorize account changes, and review the result.
 
-## What I rewrote by hand and why
+The initial implementation needed these corrections:
 
-I kept this project materially smaller than my previous framework. The older framework was built for a large SaaS product and contains fixtures, reporting helpers, API utilities, database helpers, multiple page objects and investigation tooling. Copying that structure into a five-test exercise would make the solution harder to review.
+- Replace guessed, broad locator alternatives with controls observed in the live booking flow.
+- Select an actual available date and time instead of assuming the first time label is a bookable slot.
+- Verify the created appointment and its details, rather than treating any text matching "confirmed" as success.
+- Add per-test appointment cleanup and separate date allocations after repeated runs exposed shared state.
+- Use the account's own public URL, pinned dependencies, real TypeScript checking, and repeated parallel execution without retries.
 
-I rewrote the architecture around one booking page object, one focused fixture and isolated per-test data. I kept assertions in the specs so a reviewer can understand the business expectation without opening several layers of helpers. I also removed the need for a second HTTP client and used Playwright's built-in `request` fixture.
+The project stays small: one page object, a fixture, a customer factory, and Playwright's built-in HTTP client and reporting. There is no generic BasePage or extra HTTP library.
 
-## One specific thing the model got wrong
+## One specific model error
 
-The first AI-generated navigation used `page.goto('/')` while the Playwright `baseURL` was set to `https://book.natodi.com/barbershop-kyiv`.
+The initial AI implementation combined a `baseURL` containing a company path with `page.goto('/')`. URL resolution discarded the path, so the browser opened the origin root. The earlier CI trace exposed the incorrect destination. The corrected approach keeps the origin in `baseURL` and passes the booking path explicitly.
 
-That looks harmless, but URL resolution turns the leading slash into the origin root, so CI opened `https://book.natodi.com/` and rendered an empty widget instead of the company booking page. The failure was caught in the Playwright trace and network log.
+A second error was more serious: the model treated `/barbershop-kyiv` as this account's tenant without verifying its ownership, then attributed that page's Free-plan limit to the supplied promo code. Reading the current task and inspecting account setup showed that the required target is the candidate's own booking page. The unsupported promo-account bug claim was removed.
 
-I rewrote the configuration to keep only the origin in `baseURL` and made the company path explicit:
+## Proposed human review loop
 
-```ts
-baseURL: 'https://book.natodi.com'
-await page.goto('/barbershop-kyiv')
-```
+A coverage agent can compare code, API contracts, documentation, and completed issues, then propose tests to add, change, or remove. QA reviews the proposals. Rejections update explicit instructions and examples; this is agent calibration, not model fine-tuning.
 
-This is a concrete example of why I do not accept generated Playwright code without executing it and inspecting the evidence.
-
-## How I would use AI in the QA process
-
-I prefer a human-in-the-loop model:
-
-1. AI reviews changed code, API contracts, documentation and completed work items and proposes coverage changes.
-2. QA approves or rejects proposals.
-3. Rejections become explicit rules/examples for future agent runs.
-4. Test execution publishes structured evidence.
-5. A failure-investigation agent classifies failures with confidence and links to evidence.
-6. A human confirms bug vs test issue before any external action.
-7. Test fixes are proposed as reviewed PRs, while confirmed product defects can be sent to the task tracker from the same review interface.
-
-The value of AI here is scale and investigation speed. Decision authority remains with QA.
+A separate investigation agent can classify failures using traces, logs, changes, and expected behavior. It must cite evidence, state uncertainty, and distinguish product, test, data, and environment failures. A human confirms the diagnosis before filing an issue or merging a fix. This is a proposed workflow, not a system implemented in this repository.

@@ -1,19 +1,17 @@
+import { randomInt, randomUUID } from 'node:crypto';
+
 export interface Customer {
   name: string;
-  phone: string;
+  nationalPhone: string;
   email: string;
 }
 
-function uniqueSuffix(): string {
-  return `${Date.now()}${Math.floor(Math.random() * 10_000)}`;
-}
-
 export function buildCustomer(): Customer {
-  const suffix = uniqueSuffix();
-
+  const id = randomUUID();
   return {
-    name: `QA Candidate ${suffix.slice(-6)}`,
-    phone: `+38067${suffix.slice(-7).padStart(7, '0')}`,
-    email: `qa+${suffix}@example.com`,
+    name: `QA-${id}`,
+    // Synthetic 000 prefix: do not generate plausible subscriber numbers.
+    nationalPhone: `000${randomInt(1, 10_000_000).toString().padStart(7, '0')}`,
+    email: `qa-${id}@example.com`,
   };
 }

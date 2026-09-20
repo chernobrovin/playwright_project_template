@@ -6,3 +6,7 @@ playwright/.cache/
 .env
 .env.*
 !.env.example
+reliability-report/
+reliability-results/
+playwright/.auth/
+.playwright-cli/

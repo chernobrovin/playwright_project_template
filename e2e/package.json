@@ -11,11 +11,13 @@
     "test:ui": "playwright test src/tests/booking",
     "test:api": "playwright test src/tests/api",
     "test:headed": "playwright test src/tests/booking --headed",
-    "test:reliability": "playwright test --fully-parallel --repeat-each=2",
-    "report": "playwright show-report"
+    "test:reliability": "playwright test --config=playwright.reliability.config.ts",
+    "report": "playwright show-report",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",
-    "@types/node": "22.1.0"
+    "@types/node": "22.1.0",
+    "typescript": "5.9.3"
   }
 }
