@@ -1,23 +1,42 @@
 import { expect, type Locator, type Page } from '@playwright/test';
 import type { Customer } from '../test-data/customer.factory';
 
+interface ApiErrorResponse {
+  error_code?: number;
+  message?: string;
+}
+
 export class BookingPage {
   constructor(private readonly page: Page) {}
 
   async open(): Promise<void> {
     const bookingPath = process.env.BOOKING_PATH ?? '/barbershop-kyiv';
+    const slug = bookingPath.replace(/^\/+|\/+$/g, '');
 
-    await this.page.goto(bookingPath);
-    await expect(this.page.locator('body')).toBeVisible();
-
-    const unavailableState = this.page.getByText(
-      'Онлайн запис тимчасово недоступний',
-      { exact: true },
+    const branchResponse = this.page.waitForResponse(
+      (response) =>
+        response.request().method() === 'GET' &&
+        response.url().includes(`/api/v1/branches/${slug}/slug`),
     );
 
-    if (await unavailableState.isVisible()) {
+    await this.page.goto(bookingPath);
+    const response = await branchResponse;
+
+    if (!response.ok()) {
+      let details = `HTTP ${response.status()}`;
+
+      try {
+        const body = (await response.json()) as ApiErrorResponse;
+        const errorCode =
+          body.error_code === undefined ? '' : `, error_code ${body.error_code}`;
+        const message = body.message ? `: ${body.message}` : '';
+        details += `${errorCode}${message}`;
+      } catch {
+        // The HTTP status is still enough to diagnose an unavailable tenant.
+      }
+
       throw new Error(
-        'Booking widget is unavailable for the configured tenant. Check subscription limits and booking setup before running the booking flow.',
+        `Booking environment precondition failed for "${slug}": ${details}`,
       );
     }
 
@@ -34,9 +53,8 @@ export class BookingPage {
     const service = serviceName
       ? this.page.getByText(serviceName, { exact: true })
       : this.page
-          .locator('app-list-items-by-category .list-container')
-          .locator(':scope > *')
-          .filter({ hasNot: this.page.locator('app-empty-state') })
+          .locator('app-list-items-by-category')
+          .getByRole('button')
           .first();
 
     await expect(service).toBeVisible();
