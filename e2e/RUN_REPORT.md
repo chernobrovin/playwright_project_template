@@ -1,36 +1,54 @@
 # Test Run Report
 
-## Submission environment
+## Latest verified run
 
-The project was statically reviewed while preparing the submission.
+Environment: GitHub Actions, Ubuntu 24.04, Node.js 22, Chromium via Playwright.
 
-The AI execution environment used during preparation could not establish an interactive connection to `https://book.natodi.com/barbershop-kyiv`, so I did not fabricate a green E2E result or invent product bugs. The repository is configured to produce a Playwright HTML report, trace, screenshot and video evidence when executed in a normal environment.
+Result:
+
+- API tests: **2 passed**
+- Booking UI tests: **3 blocked/failed at the environment precondition**
+- Type/test discovery: **passed**
+- Playwright HTML report and failure artifacts: **generated successfully**
+
+The booking tests reached the real public page `https://book.natodi.com/barbershop-kyiv`. The page currently renders `Онлайн запис тимчасово недоступний`.
+
+The trace shows the underlying request:
+
+```text
+GET https://api.natodi.com/api/v1/branches/barbershop-kyiv/slug
+HTTP 400
+error_code: 4181
+You have exceeded the appointments limit for the free plan (20).
+Please upgrade your subscription to add more appointments.
+```
+
+This conflicts with the test-task precondition that promo code `PRC1NJT` provides full access for the duration of the task. I kept the failed result instead of masking the environment/product state with a skip.
 
 ## Commands
 
+The repository can be installed and executed with two commands:
+
 ```bash
-npm install
-npx playwright install chromium
+npm install && npx playwright install chromium
 npm test
+```
+
+Reliability check after the booking account is unblocked:
+
+```bash
 npm run test:reliability
 ```
 
-## Expected report location
+## Report locations
 
 ```text
-e2e/playwright-report/index.html
+playwright-report/index.html
+test-results/
 ```
 
-Failure artifacts:
+Failures retain screenshot and video evidence. A trace is retained on the first retry.
 
-```text
-e2e/test-results/
-```
+## Note
 
-## Reliability check
-
-`npm run test:reliability` executes every test twice with full parallelism. This is the check I use to expose hidden order dependencies and shared test data.
-
-## Note for reviewer
-
-I prefer an explicit "not executed in this restricted environment" record over reporting results I could not verify. The CI run for the submitted commit should be treated as the source of truth.
+The API checks are green. The UI failure is not being reported as a passing run because the required booking flow is currently unavailable on the supplied test tenant.
