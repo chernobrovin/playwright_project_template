@@ -16,11 +16,18 @@ I rewrote the architecture around one booking page object, one focused fixture a
 
 ## One specific thing the model got wrong
 
-The model initially proposed freezing the browser clock with Playwright's `page.clock` as the main solution for a scenario such as "book tomorrow at 10:00".
+The first AI-generated navigation used `page.goto('/')` while the Playwright `baseURL` was set to `https://book.natodi.com/barbershop-kyiv`.
 
-That is incomplete for this product. Appointment availability is server-side state. Freezing JavaScript `Date` in the browser does not freeze the backend clock and does not make an occupied or available slot deterministic.
+That looks harmless, but URL resolution turns the leading slash into the origin root, so CI opened `https://book.natodi.com/` and rendered an empty widget instead of the company booking page. The failure was caught in the Playwright trace and network log.
 
-I corrected the approach to use controlled test data, a fixed timezone, bounded slot discovery and isolated bookings. In a dedicated test environment I would additionally control scheduling state through setup/cleanup APIs or a test-only backend clock.
+I rewrote the configuration to keep only the origin in `baseURL` and made the company path explicit:
+
+```ts
+baseURL: 'https://book.natodi.com'
+await page.goto('/barbershop-kyiv')
+```
+
+This is a concrete example of why I do not accept generated Playwright code without executing it and inspecting the evidence.
 
 ## How I would use AI in the QA process
 
