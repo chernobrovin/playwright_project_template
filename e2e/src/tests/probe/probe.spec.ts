@@ -3,10 +3,12 @@ import { test } from '@playwright/test';
 test('non-destructive booking UI probe', async ({ page }) => {
   await page.goto('https://book.natodi.com/daniil-diumin');
 
-  console.log('BODY_START');
-  console.log((await page.locator('body').innerText()).slice(0, 8000));
-  console.log('BODY_END');
+  const serviceTrigger = page.getByText('Оберіть послуги', { exact: true });
+  console.log('SERVICE_TRIGGER', await serviceTrigger.evaluate((el) => el.outerHTML));
 
-  console.log('BUTTONS', await page.getByRole('button').allInnerTexts());
-  console.log('LINKS', await page.getByRole('link').allInnerTexts());
+  await serviceTrigger.click();
+  console.log('AFTER_SERVICE_CLICK');
+  console.log((await page.locator('body').innerText()).slice(0, 8000));
+  console.log('BUTTONS_AFTER_SERVICE', await page.getByRole('button').allInnerTexts());
+  console.log('OPTIONS_AFTER_SERVICE', await page.getByRole('option').allInnerTexts());
 });
