@@ -54,4 +54,10 @@ The first CI reliability run exposed intermittent duplicate HTML IDs for the nam
 
 ## Evidence review correction
 
-A real Control+V paste preserved the international phone number. The earlier corruption occurred with Playwright fill(), so the clipboard-paste claim was withdrawn. BUGS.md records the comparison and screenshots. Confirmed findings are the pricing wording inconsistency and duplicate contact-input IDs. The subscription remains active at the owner's request.
+A real Control+V paste preserved the international phone number. The earlier corruption occurred with Playwright fill(), so the clipboard-paste claim was withdrawn. BUGS.md records the comparison and screenshots. The selected reports now cover duplicate contact-input IDs, raw null analytics values, and long-name display problems. The earlier pricing observation is retained in EXPLORATORY_REVIEW.md outside the three-report selection. The subscription remains active at the owner's request.
+
+## Follow-up to manual exploratory screenshots
+
+The six user-supplied observations were checked in live Chromium 153.0.8010.48 on Windows. Analytics displayed two `null` values with zero appointment counters after reload. A temporary service/category reproduced three long-name layout symptoms; the clear button and category switching still worked. The service was disabled in the public widget, and both temporary records were deleted with successful responses and follow-up checks. `QA Haircut` remained present.
+
+The referral-card label overlapped at 1280/1366 px and fit at 1920 px. The separate `barbershop-kyiv` page returned HTTP 400 / business code 4181 and a handled unavailable-booking state; this was not classified as a confirmed bug. Full decisions and privacy-safe evidence are in [EXPLORATORY_REVIEW.md](EXPLORATORY_REVIEW.md). Test implementation and subscription settings were unchanged.

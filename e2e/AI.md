@@ -20,6 +20,10 @@ The clipboard-paste defect was withdrawn. The [screenshots and recorded values](
 
 An earlier model error also combined a company path in `baseURL` with `page.goto('/')`, which navigated to the origin root. The current implementation keeps the origin and explicit booking path separate. It also verifies ownership of the target tenant instead of attributing another tenant's plan limit to the supplied promo.
 
+## Human exploratory findings and AI-assisted verification
+
+I supplied six screenshots from my own exploratory testing and asked for their significance to be checked before inclusion. The follow-up reproduced the UI symptoms with fresh screenshots and DOM measurements, checked the functioning clear button, and treated the 20-appointment response as insufficient evidence of a bug. It selected analytics empty-state and long-name findings for the limited submission and documented the other observations separately. These symptoms were human-discovered; AI performed the follow-up verification and documentation. Temporary service/category records were cleaned up afterward.
+
 ## Proposed human review loop
 
 A coverage agent could compare code changes, API contracts, documentation, and completed issues, then propose tests to add, update, or remove. QA approves proposals and translates rejected suggestions into explicit rules and examples. This is agent calibration, not model fine-tuning.

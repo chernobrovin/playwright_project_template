@@ -79,6 +79,7 @@ The configured employee works 09:00-18:00 daily through October 31, 2026. Extend
 `npm test` writes `e2e/playwright-report/index.html`. Failures retain a trace, screenshot, and video. CI puts the repeated run in a separate `reliability-report` directory. The [committed report archive](e2e/reports/README.md) contains the original successful HTML reports and their checksums, so evidence remains available after CI artifacts expire. Current runs also upload the `playwright-reports` artifact.
 
 - [Test strategy](e2e/STRATEGY.md) and [one-page PDF](e2e/STRATEGY.pdf)
-- [Detailed bug reports and evidence](e2e/BUGS.md)
+- [Three selected bug reports and evidence](e2e/BUGS.md)
+- [Review of six manual observations and additional findings](e2e/EXPLORATORY_REVIEW.md)
 - [AI contribution and corrected mistakes](e2e/AI.md)
 - [Execution evidence and environment limits](e2e/RUN_REPORT.md)

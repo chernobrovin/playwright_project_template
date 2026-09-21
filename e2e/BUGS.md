@@ -1,34 +1,8 @@
 # Natodi bug reports
 
-Two confirmed findings from the September 21, 2026 review (Europe/Kyiv). A third suspected issue was withdrawn after testing the actual clipboard input method. Severity describes user impact; priorities below are QA recommendations. Natodi did not expose an application build number in the inspected UI.
+Three selected findings for the assignment, verified on September 21, 2026 (Europe/Kyiv). The new analytics and long-name reports follow the candidate's manual screenshots and a live reproduction pass. Severity describes demonstrated impact; priorities are QA recommendations. Natodi did not expose an application build number in the inspected UI.
 
-## NTD-001: A free-trial card also states a paid activation
-
-| Field | Details |
-| --- | --- |
-| Area | Registration, promo, plan selection and checkout |
-| Environment | Production admin.natodi.com, Ukrainian UI, desktop Chromium on Windows |
-| Severity / proposed priority | Low / P3 |
-| Reproducibility | Observed once during registration; post-activation replay redirects to the dashboard |
-
-**Preconditions:** A newly registered account has reached plan selection before activation. The assignment's supplied promo `PRC1NJT` is applied.
-
-**Steps to reproduce**
-
-1. Complete the registration questionnaire and account registration.
-2. On the plan-selection screen, apply the supplied promo.
-3. Inspect the card labeled `7 днів безкоштовно` and its price.
-4. Select that card and inspect checkout before entering payment details.
-
-**Expected:** The offer clearly distinguishes a free period from any activation charge. The plan card and checkout consistently explain the amount due now.
-
-**Actual:** The same card contains `7 днів безкоштовно` and `1.00 грн`; checkout displays `Сплатити 1,00грн`. A user must reconcile the free wording with a nonzero amount before activating the account.
-
-**Impact and scope:** This is a pricing-copy inconsistency, not evidence of an incorrect debit. Checkout does disclose the amount. The review did not establish whether a separate Free-plan route exists or whether every registration route requires payment.
-
-**Evidence:** The original [paywall excerpt](evidence/NTD-001/paywall-excerpt.yml) and [checkout excerpt](evidence/NTD-001/checkout-excerpt.yml) preserve the browser's observed text. [Provenance and hashes](evidence/NTD-001/provenance.json) identify capture times (02:08 and 02:09 Kyiv time). No original pricing screenshot was saved. Reopening the paywall after activation redirected to the dashboard, so no reconstructed image is presented as evidence.
-
-**Regression checks:** Promo and non-promo offers; trial and monthly cards; Ukrainian price wording; consistent amounts between the card and checkout. Recheck in a fresh pre-activation account without charging a card.
+The [review notes](EXPLORATORY_REVIEW.md) explain all six submitted observations, the lower-priority referral-card issue, the plan-limit response, and the earlier pricing finding. NTD-001 retains its original identifier there; it was replaced in this three-report selection, not withdrawn. The unsupported clipboard-paste claim remains withdrawn below.
 
 ## NTD-002: Duplicate input IDs associate both contact labels with the name field
 
@@ -60,6 +34,76 @@ Two confirmed findings from the September 21, 2026 review (Europe/Kyiv). A third
 **Test workaround:** Scope each input through its observed `formcontrolname` container. This stabilizes automation without fixing or hiding the product defect.
 
 **Regression checks:** Unique IDs across repeated mounts and fresh sessions; correct accessible names; label-click focus; keyboard and screen-reader navigation.
+
+## NTD-003: Empty analytics displays literal null for profit and average check
+
+| Field | Details |
+| --- | --- |
+| Area | Analytics, Overview, previous 30 days |
+| Environment | Production [admin analytics](https://admin.natodi.com/analytics), Ukrainian UI, Chromium 153.0.8010.48 on Windows, 1280 x 900 |
+| Severity / proposed priority | Low / P3, incorrect empty-state presentation |
+| Reproducibility | Observed on initial load and again after reload on September 21, 2026 |
+
+**Preconditions:** The selected period has no recorded appointments. In this review, total, completed, and cancelled appointment counts all displayed `0`; average workload displayed `0%`.
+
+**Steps to reproduce**
+
+1. Open `Аналітика` in the test account.
+2. Select `Огляд` and the period `Попередні 30 днів`, with no branch or employee filter applied.
+3. Inspect `Чистий прибуток` and `Середній чек`.
+4. Reload the page and inspect the same cards again.
+
+**Expected:** A meaningful localized no-data presentation, such as `Немає даних` or a dash. Use zero only where the metric definition supports it; an undefined average should not be presented as a calculated zero.
+
+**Actual:** Both cards display the literal technical value `null` as their main figure.
+
+**Impact and limits:** A new or inactive business cannot distinguish an empty reporting period from a calculation problem. This confirms a presentation defect; it does not establish an incorrect calculation when revenue exists. No workflow blockage was demonstrated.
+
+**Evidence:** [Recorded values, environment and image checksum](evidence/NTD-003/observations.json). The screenshot includes the selected period and zero appointment counts.
+
+![Empty analytics renders null while appointment counts are zero](evidence/NTD-003/analytics-empty.png)
+
+**Regression checks:** Empty and populated periods; new accounts; filters that return no appointments; undefined averages; localized empty-state wording.
+
+## NTD-004: Accepted long service and category names overflow admin controls
+
+| Field | Details |
+| --- | --- |
+| Area | Service category input, service details, employee services |
+| Environment | Production admin.natodi.com, Ukrainian UI, Chromium 153.0.8010.48 on Windows, 1366 x 900 |
+| Severity / proposed priority | Low / P3, readability and layout |
+| Reproducibility | All three manifestations reproduced; saved-data views reproduced after reload |
+
+**Test data:** Service name = `QA Overflow ` followed by `Послуга` repeated 20 times (152 characters). Category = `QA Overflow ` followed by `Категорія` repeated 16 times (156 characters). Price 1 UAH, duration 30 minutes. These are boundary inputs with long unbroken segments. The application accepted and persisted them. The temporary service was disabled for public self-booking.
+
+**Steps to reproduce**
+
+1. In `Послуги`, create a service with the test names above, an assigned employee, a price and a duration.
+2. Select the long category and move focus away from its field. Inspect the clear icon.
+3. Save the service, open its details, and inspect the service and category headings. Reload to verify persistence.
+4. Open `Персонал`, select the assigned employee, and inspect the category tab and service title under `Послуги`. Reload this view as well.
+
+**Expected:** Accepted text stays within its control and does not overlap actions. Wrap or truncate it with a way to access the full value; reserve space for the clear icon. If such input is unsupported, validation should explain that before saving.
+
+**Actual:**
+
+- The category text paints beneath the clear icon. Its text area extends to x=971.5, while the clear button occupies x=947.5 to 971.5. The clear button still works with an ordinary click.
+- In service details, the header has a 479 px content width but a 1967 px scroll width. The names extend outside the visible card area; horizontal scrolling is needed to reach the displaced header actions.
+- In employee services, the long category button is 1081 px wide inside a 463 px strip. Its text content needs 31 px vertically inside a 26 px button, clipping the label. The service title also extends beyond the visible content area.
+
+**Impact and limits:** Accepted names become hard to read and distort the layout. Category clearing and switching still work. No booking failure or data loss was demonstrated. These related symptoms form one bounded report; a shared implementation-level root cause has not been established.
+
+**Evidence:** [Test data, DOM measurements, checksums and cleanup results](evidence/NTD-004/observations.json).
+
+![Long category text overlaps the functioning clear icon](evidence/NTD-004/category-clear-overlap.png)
+
+![Persisted long names extend outside the service details card](evidence/NTD-004/service-title-overflow.png)
+
+![The employee category label is clipped and the service title overflows](evidence/NTD-004/employee-service-overflow.png)
+
+**Cleanup:** The temporary service and category were deleted after verification. The original `QA Haircut` remained available. No appointment was created for this check.
+
+**Regression checks:** Short and boundary-length values; spaces and unbroken words; Cyrillic and Latin text; 1280, 1366 and 1920 px widths; clear-icon hit area; service and employee details; readable full values without breaking the layout.
 
 ## Withdrawn finding: International phone-number paste
 

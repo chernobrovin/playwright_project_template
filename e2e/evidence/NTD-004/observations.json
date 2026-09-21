@@ -1,0 +1,70 @@
+{
+  "verifiedAt": "2026-09-21",
+  "environment": {
+    "browser": "Chromium 153.0.8010.48",
+    "platform": "Windows",
+    "locale": "uk-UA",
+    "viewport": {
+      "width": 1366,
+      "height": 900
+    }
+  },
+  "testData": {
+    "serviceName": "QA Overflow ПослугаПослугаПослугаПослугаПослугаПослугаПослугаПослугаПослугаПослугаПослугаПослугаПослугаПослугаПослугаПослугаПослугаПослугаПослугаПослуга",
+    "serviceNameLength": 152,
+    "categoryName": "QA Overflow КатегоріяКатегоріяКатегоріяКатегоріяКатегоріяКатегоріяКатегоріяКатегоріяКатегоріяКатегоріяКатегоріяКатегоріяКатегоріяКатегоріяКатегоріяКатегорія",
+    "categoryNameLength": 156,
+    "priceUAH": 1,
+    "durationMinutes": 30,
+    "availableFromWidget": false
+  },
+  "categoryField": {
+    "inputWidthPx": 400,
+    "inputScrollWidthPx": 1370,
+    "paddingRightPx": 44,
+    "textAreaRightPx": 971.5,
+    "clearButtonLeftPx": 947.5,
+    "clearButtonRightPx": 971.5,
+    "htmlMaxLength": -1,
+    "ordinaryClearClickWorks": true
+  },
+  "serviceDetailsAfterReload": {
+    "headerClientWidthPx": 479,
+    "headerScrollWidthPx": 1967,
+    "cardClientWidthPx": 511,
+    "cardScrollWidthPx": 1983
+  },
+  "employeeServicesAfterReload": {
+    "categoryContainerWidthPx": 463,
+    "categoryButtonWidthPx": 1081,
+    "categoryButtonHeightPx": 26,
+    "categoryButtonScrollHeightPx": 31,
+    "serviceTitleWidthPx": 1247,
+    "switchingToQaServicesWorks": true
+  },
+  "cleanup": {
+    "temporaryServiceId": "5edb3adb-b01a-47d5-83e8-bc0215a965cb",
+    "serviceDeleteStatus": 200,
+    "serviceAbsentFromList": true,
+    "originalQaHaircutPresent": true,
+    "temporaryCategoryId": "da1c2ad9-5dca-4d56-9117-d26ffe411bbf",
+    "categoryDeleteStatus": 200,
+    "categoryVerificationGetStatus": 200,
+    "matchingCategoriesRemaining": 0
+  },
+  "captures": [
+    {
+      "file": "category-clear-overlap.png",
+      "sha256": "31b4a6b0397692f599d98bab71063d80169c7a746d873d0a80aa6d7ae2c94e86"
+    },
+    {
+      "file": "service-title-overflow.png",
+      "sha256": "5a6d31fb85513dae0cced8e0b02dcade0d8c6c6f7c6676417ce83b33da7c28b7"
+    },
+    {
+      "file": "employee-service-overflow.png",
+      "sha256": "d9b7636e2ea51d4d10e9f0cc6b7f210d0576550929e3f1ca8f79aacfbda694fa"
+    }
+  ],
+  "limits": "Related display symptoms are grouped for this bounded assignment. A shared code-level root cause was not established. No booking failure or data loss was demonstrated."
+}
