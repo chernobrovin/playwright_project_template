@@ -2,6 +2,8 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './src/tests',
+  // Archived HTML reports are large generated files; keep commit identity without embedding their diff.
+  captureGitInfo: { commit: true, diff: false },
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: 0,

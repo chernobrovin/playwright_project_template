@@ -1,0 +1,17 @@
+        - generic [ref=f16e441]:
+          - textbox "Промокод" [ref=f16e444]: PRC1NJT
+          - button "Застосувати" [ref=f16e445] [cursor=pointer]
+        - generic [ref=f16e163]:
+          - generic [ref=f16e447] [cursor=pointer]:
+            - generic [ref=f16e449]:
+              - generic [ref=f16e450]: 7 днів безкоштовно
+              - generic [ref=f16e451]:
+                - generic [ref=f16e452]: 1.00 грн
+                - generic [ref=f16e453]: 449.99 грн →
+            - generic [ref=f16e457]:
+              - generic [ref=f16e458]:
+                - generic [ref=f16e459]: "0.1"
+                - generic [ref=f16e460]: грн
+              - generic [ref=f16e461]: на день
+          - generic [ref=f16e180] [cursor=pointer]:
+            - generic [ref=f16e181]: НАЙПОПУЛЯРНІШИЙ

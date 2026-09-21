@@ -1,53 +1,33 @@
-# Test Strategy
+# Test strategy
 
-## Automation and manual work
+## What to automate and what to keep manual
 
-Automate stable rules: booking, cancellation, slot conflicts, working hours, permissions, API contracts, notification triggers, and prices. Keep requirement analysis, exploration, usability, and ambiguous behavior primarily manual. Automate critical checks before production once contracts stabilize. This submission covers booking, two form negatives, and successful/negative public API responses with schema assertions.
+Automate frequent, stable rules with clear outcomes: booking, cancellation, slot conflicts, working hours, permissions, API contracts, notifications, and prices. Fast repeatable feedback protects these flows as the product changes. This submission covers booking, two form negatives, and public API success/schema/404 checks.
 
-AI can propose coverage changes from code, contracts, documentation, and completed issues. QA reviews proposals; rejections become explicit instructions and examples. An investigation agent can classify failures with evidence and confidence. Humans approve issues and fixes. This is a proposed review process, not a system implemented here.
+Keep requirement analysis, exploratory testing, usability, and ambiguous new behavior primarily manual: they require judgment before assertions are reliable. Automate critical checks before production once the contract stabilizes. AI may propose coverage and investigate failures; QA approves conclusions and changes.
 
-## Time and repeatability
+## Deterministic time and state
 
-Use a dedicated tenant, controlled hours, and `Europe/Kyiv`. Discover availability within 14 future days; partition calendar dates by scenario and repetition. Generate unique synthetic contacts and assert the persisted appointment. Teardown deletes only each test's appointments and verifies 404; synthetic client profiles remain. CI serializes runs; avoid overlapping local execution.
+In a controlled environment, seed known services, schedules, and appointments; control the backend clock; explicitly test timezone and midnight boundaries. Freezing only the browser cannot freeze server-side availability.
 
-Use no fixed sleeps or hidden retries. Repeat all tests twice with two workers. A controlled environment should support data seeding and a backend clock for boundaries; a browser clock cannot freeze server availability. Extend working hours beyond October 31, 2026 and maintain the tenant's booking access.
+On this live tenant, use Europe/Kyiv, query availability within 14 future days, partition dates between concurrent cases, and generate unique synthetic contacts. Delete only each test's appointments and verify 404 afterward. Use no fixed sleeps or retries. Run twice with two workers; serialize separate CI runs. Live access remains an external dependency: maintain the plan and extend working hours beyond October 31, 2026.
 
-## Confirmed findings
+## Findings
 
-Verified September 21, 2026, Chromium, Ukrainian UI.
+### NTD-001: A free-trial card also states a paid activation
 
-### 1. A trial labeled free opens a paid checkout
+**Steps:** Complete registration, apply the supplied promo, select `7 днів безкоштовно`, and inspect the activation price and checkout.
 
-**Severity:** Minor, pricing clarity.
+**Expected:** Consistent wording that distinguishes a free period from any activation charge.
 
-**Steps:** Register, apply the supplied promo, select `7 днів безкоштовно`, then `Отримати доступ`.
+**Actual:** The card also shows `1.00 грн`; checkout requests `Сплатити 1,00грн`. **Severity:** Low, pricing clarity. A separate Free-plan route was not established.
 
-**Expected:** Explain activation charges and show consistent prices before checkout.
+### NTD-002: Duplicate input IDs break contact labels
 
-**Actual:** The card says both `7 днів безкоштовно` and `1.00 грн`; checkout requests `Сплатити 1,00грн` for a Pro subscription. Duplicate cards below retain their original prices.
+**Steps:** Reach booking contacts in repeated fresh sessions; inspect name/phone IDs and their labels when a collision occurs.
 
-**Impact:** Activation cost is unclear. Payment was required on this route; a separate Free-plan route remains unverified.
+**Expected:** Unique IDs and the correct label for each input.
 
-### 2. Pasting an international phone number changes its digits
+**Actual:** Both inputs received `input-25`; both labels targeted the name field. **Severity:** Medium, accessibility. Intermittent; captured in a CI trace.
 
-**Severity:** Major, incorrect contact data.
-
-**Steps:** Reach booking contacts; paste synthetic `+380000000001` into `Телефон *`.
-
-**Expected:** Preserve the number or clearly reject its format.
-
-**Actual:** It becomes `+38 (380) 000-0000`. Entering national digits `0000000001` produces the intended `+38 (000) 000-0001`.
-
-**Impact:** A pasted contact can identify the wrong recipient. Tests document and use the national-digit workaround.
-
-### 3. Duplicate input IDs associate both labels with the name field
-
-**Severity:** Moderate, accessibility. **Reproducibility:** Intermittent, captured in CI trace.
-
-**Steps:** Open booking contacts repeatedly; inspect input IDs and associated labels.
-
-**Expected:** Unique IDs; each label identifies its corresponding input.
-
-**Actual:** Name and phone both received `id="input-25"`; both labels used `for="input-25"`. The name field's accessible name became `Ім'я * Телефон *`; the phone lost its label.
-
-**Impact:** Assistive technologies and label-based interaction can identify the wrong field. Tests scope inputs by observed `formcontrolname` attributes. Evidence: [CI run and trace artifact](https://github.com/chernobrovin/playwright_project_template/actions/runs/35545954117).
+Full reproduction details and evidence: [BUGS.md](BUGS.md). The suspected phone-paste defect was withdrawn after a real Ctrl+V preserved the number; the input-method comparison is recorded there. This document's matching [PDF](STRATEGY.pdf) is one A4 page.

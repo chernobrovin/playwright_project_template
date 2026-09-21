@@ -1,0 +1,5 @@
+        - button "Сплатити 1,00грн" [ref=f16e541] [cursor=pointer]:
+          - text: Сплатити
+          - generic [ref=f16e543]:
+            - generic [ref=f16e544]: 1,00
+            - text: грн

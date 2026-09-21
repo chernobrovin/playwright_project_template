@@ -1,0 +1,23 @@
+{
+  "observations": [
+    {
+      "file": "paywall-excerpt.yml",
+      "capturedAtUtc": "2026-09-20T23:08:55.099Z",
+      "page": "https://admin.natodi.com/webfunnel/paywall",
+      "source": "Original Playwright CLI accessibility snapshot captured during registration",
+      "selection": "Contiguous pricing-only excerpt; unrelated content omitted",
+      "sourceOutputSha256": "94bbcb77123362483a6566e4864d18edcbcbfecf30ee9c34c4937912275777c9",
+      "excerptSha256": "b1b4f17d5594736a025c3dd5bdcee65314b49f540122449109d7f344e5cc27db"
+    },
+    {
+      "file": "checkout-excerpt.yml",
+      "capturedAtUtc": "2026-09-20T23:09:42.567Z",
+      "page": "https://admin.natodi.com/webfunnel/checkout",
+      "source": "Original Playwright CLI accessibility snapshot captured during registration",
+      "selection": "Contiguous pricing-only excerpt; unrelated content omitted",
+      "sourceOutputSha256": "ffe1172cd546736fa51b62ce96cff5a3272c047ef4249d0380e4493696e39f02",
+      "excerptSha256": "bd5d2474c77e68c48b14ddc9b5191c3194b4007f615fcebea8fee52197b51951"
+    }
+  ],
+  "recheck": "After activation, the paywall redirects this account to the dashboard. No original pricing screenshot was saved; no replacement screenshot or payment was fabricated."
+}

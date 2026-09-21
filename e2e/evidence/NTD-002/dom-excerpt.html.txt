@@ -1,0 +1,9 @@
+<!-- Extracted from the original CI trace. Angular styling attributes omitted. -->
+<label for="input-25">Ім&#x27;я *</label>
+<app-input formcontrolname="first_name">
+  <input placeholder="" id="input-25" type="text">
+</app-input>
+<label for="input-25">Телефон *</label>
+<app-input formcontrolname="phone_number">
+  <input placeholder="+380 (---) --- -- --" id="input-25" type="tel">
+</app-input>

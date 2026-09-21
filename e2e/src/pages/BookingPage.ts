@@ -119,7 +119,7 @@ export class BookingPage {
 
   async fillCustomer(customer: Customer): Promise<void> {
     await this.nameInput.fill(customer.name);
-    // Natodi adds +38 itself; passing an international number duplicates the prefix.
+    // E.164 clipboard paste works, but fill() needs national digits for this input mask.
     await this.phoneInput.fill(customer.nationalPhone);
     await this.page.getByRole('textbox', { name: 'email@example.com', exact: true }).fill(customer.email);
   }

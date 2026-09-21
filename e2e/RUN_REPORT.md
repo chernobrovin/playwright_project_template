@@ -1,5 +1,11 @@
 # Test Run Report
 
+## Verified CI execution and permanent reports
+
+[CI run 35546252608](https://github.com/chernobrovin/playwright_project_template/actions/runs/35546252608) passed TypeScript, 5/5 normal tests (11.9 s), and 10/10 reliability executions (21.1 s), with two workers and zero retries. Tested commit: `c74f6d3886b6a779b257c16c99950a993e8759bd`.
+
+The original [HTML reports and machine-readable summary](reports/README.md) are committed in this repository. Their embedded test results were read back and their SHA-256 hashes match the downloaded CI files. These snapshots describe that tested commit; current-commit status is shown in the PR checks.
+
 ## Verified local execution
 
 Date: September 21, 2026 (Europe/Kyiv). Environment: Windows, Node.js 22.14.0, npm 10.9.2, Playwright 1.63.0, Chromium, Ukrainian UI.
@@ -28,7 +34,7 @@ Local report paths, relative to `e2e`:
 - `reliability-report/index.html`
 - `test-results/` and `reliability-results/` contain any failure evidence.
 
-Traces, screenshots, and video are retained on failures without enabling retries. Reports are generated artifacts and are not committed with application credentials or browser session state.
+Traces, screenshots, and video are retained on failures without enabling retries. The selected successful HTML reports are intentionally archived in git. Raw failure traces and browser session state are not committed. Sanitized, focused evidence is included in BUGS.md.
 
 ## Setup and remaining external limits
 
@@ -44,4 +50,8 @@ The earlier implementation targeted `/barbershop-kyiv` without proving ownership
 
 Early live runs exposed shared-slot conflicts and an incorrect repetition count in worker configuration. Date partitioning, explicit reliability configuration, and verified per-test appointment deletion resolved the observed test failures. They were not hidden with sleeps, retries, or skips. Product findings and their limits are documented in [STRATEGY.md](STRATEGY.md).
 
-The first CI reliability run exposed intermittent duplicate HTML IDs for the name and phone inputs. Its trace confirmed that both labels targeted the name field. The page object now scopes inputs by their observed form control attributes, and the defect is recorded as finding 3. Both local suites passed after this adjustment.
+The first CI reliability run exposed intermittent duplicate HTML IDs for the name and phone inputs. Its trace confirmed that both labels targeted the name field. The page object now scopes inputs by their observed form control attributes, and the defect is recorded as NTD-002. Both local suites passed after this adjustment.
+
+## Evidence review correction
+
+A real Control+V paste preserved the international phone number. The earlier corruption occurred with Playwright fill(), so the clipboard-paste claim was withdrawn. BUGS.md records the comparison and screenshots. Confirmed findings are the pricing wording inconsistency and duplicate contact-input IDs. The subscription remains active at the owner's request.
