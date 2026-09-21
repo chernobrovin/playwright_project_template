@@ -20,7 +20,7 @@ Those reviews led to concrete corrections:
 - Separate automation resilience from product quality. Scoping fields by `formcontrolname` supports the tests; the captured label-association defect remains documented with DOM and accessibility evidence.
 - Rate findings by demonstrated impact. The long-name clear button still worked, so the report describes a Low-severity presentation defect. The plan-limit response alone did not prove a subscription bug.
 
-The implementation also evolved through AI-assisted debugging: observed controls replaced guessed locators, booking assertions included saved data, and date partitioning plus verified cleanup resolved test-created conflicts. The repeated CI suite checks these choices with two workers and zero retries. [Execution evidence](RUN_REPORT.md) records the results and remaining environment dependencies.
+The implementation also evolved through AI-assisted debugging: observed controls replaced guessed locators, booking assertions included saved data, and date partitioning plus verified cleanup resolved test-created conflicts. A final clean-install review moved setup into one npm command and made the creation and read-back assertions share the same business expectations. The repeated CI suite checks these choices with two workers and zero retries. [Execution evidence](RUN_REPORT.md) records the results and remaining environment dependencies.
 
 ## One specific model error corrected through review
 

@@ -16,21 +16,23 @@ test.describe('Public booking', () => {
     await expect(page).toHaveURL(new RegExp(`/success/${appointment.id}(?:\\?|$)`));
     await expect(page.getByText(bookingPage.serviceName, { exact: true })).toBeVisible();
     await expect(page.getByText(`${slot.time}–`, { exact: false })).toBeVisible();
-    expect(appointment).toMatchObject({
+    const expectedAppointment = {
       status: 'created',
       price: 100,
       duration: 1800,
       client: { first_name: customer.name },
       branch: { slug: bookingPage.bookingPath.slice(1) },
       services: [{ title: bookingPage.serviceName, quantity: 1 }],
-    });
+    };
+    expect(appointment).toMatchObject(expectedAppointment);
     expect(appointment.start_at.slice(0, 16)).toBe(`${slot.date}T${slot.time}`);
 
     const persisted = await request.get(`https://api.natodi.com/api/v1/appointments/${appointment.id}`);
     expect(persisted.status()).toBe(200);
     expect((await persisted.json()).data).toMatchObject({
-      id: appointment.id, status: 'created', start_at: appointment.start_at,
-      client: { first_name: customer.name },
+      ...expectedAppointment,
+      id: appointment.id,
+      start_at: appointment.start_at,
     });
     await testInfo.attach('created-appointment', {
       body: JSON.stringify({ id: appointment.id, customer: customer.name, ...slot }),

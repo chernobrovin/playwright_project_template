@@ -7,6 +7,7 @@
     "node": ">=22"
   },
   "scripts": {
+    "setup": "npm ci && playwright install --with-deps chromium",
     "test": "playwright test",
     "test:ui": "playwright test src/tests/booking",
     "test:api": "playwright test src/tests/api",

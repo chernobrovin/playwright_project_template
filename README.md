@@ -11,11 +11,11 @@ The submission contains three UI scenarios and two public REST API tests. The [a
 Prerequisite: Node.js 22 or newer. Check out the submission branch and open its `e2e` directory, then install and run with two commands:
 
 ```bash
-npm ci && npx playwright install chromium
+npm run setup
 npm test
 ```
 
-On Windows PowerShell 5, run the two parts of the first line separately. Linux CI installs Chromium system dependencies with `--with-deps`.
+`setup` installs the locked npm dependencies, Chromium, and its required system libraries. Use the same two commands in PowerShell or bash. On Linux, installing system libraries may require sudo access.
 
 ```bash
 npm run typecheck
@@ -30,7 +30,7 @@ npm run report
 
 | Scenario | Evidence checked |
 | --- | --- |
-| Complete a booking | Select `QA Haircut`, an available future slot, and synthetic contact details. Check the confirmation, appointment identity, client, service, date/time, 100 UAH price, and 30-minute duration. Read the saved appointment through Natodi's API. |
+| Complete a booking | Select `QA Haircut`, an available future slot, and synthetic contact details. Check the confirmation, appointment identity, client, service, date/time, 100 UAH price, and 30-minute duration. Read the saved appointment through Natodi's API and verify the same business values. |
 | Incomplete phone number | Check validation feedback, disabled submission, and that the client remains on the contact form. |
 | Missing required name | Establish that the complete form can be submitted, clear the name, and check that submission becomes disabled. |
 | Successful public REST request | Check HTTP 200, the todo's runtime schema, and expected field values. |
