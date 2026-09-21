@@ -54,7 +54,7 @@ e2e/
 
 The page object owns observed UI interactions. Specs express business assertions. A fixture records and deletes only appointments created by its own test, including after an assertion failure, and checks that they return 404 afterward. Synthetic client profiles can remain in this dedicated tenant; no broad customer deletion is attempted.
 
-Tests generate unique names, reserved `example.com` email addresses, and non-subscriber phone numbers. No admin credentials are needed. Service selection uses accessible locators and visible text; the unnamed add button is scoped to the matching `app-short-info-card`.
+Tests generate unique names, reserved `example.com` email addresses, and non-subscriber phone numbers. No admin credentials are needed. Service selection uses accessible locators and visible text; the unnamed add button is scoped to the matching `app-short-info-card`. Contact inputs use observed `formcontrolname` containers because duplicate product-generated IDs can break their accessible names (see finding 3).
 
 Availability comes from the live UI requests. Tests use future dates within 14 days in `Europe/Kyiv`; calendar dates are partitioned by scenario and repetition so concurrent checks do not compete for a slot. No fixed sleeps, skipped tests, or retries conceal failures. Separate CI runs are serialized because they share a tenant. Avoid running a local suite while CI is active.
 

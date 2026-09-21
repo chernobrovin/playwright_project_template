@@ -27,8 +27,10 @@ export class BookingPage {
   readonly confirmation: Locator;
 
   constructor(private readonly page: Page) {
-    this.nameInput = page.getByRole('textbox', { name: "Ім'я *", exact: true });
-    this.phoneInput = page.getByRole('textbox', { name: 'Телефон *', exact: true });
+    // Natodi can generate duplicate input ids, breaking label associations.
+    // Scope by the observed form control instead of its unreliable accessible name.
+    this.nameInput = page.locator('app-input[formcontrolname="first_name"]').getByRole('textbox');
+    this.phoneInput = page.locator('app-input[formcontrolname="phone_number"]').getByRole('textbox');
     this.submitButton = page.getByRole('button', { name: 'Записатись', exact: true });
     this.confirmation = page.getByText('Ви успішно записалися!', { exact: true });
   }

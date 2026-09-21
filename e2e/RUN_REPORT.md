@@ -9,12 +9,12 @@ Target: https://book.natodi.com/qa-barbershop-0921
 | Check | Result |
 | --- | --- |
 | `npm run typecheck` | Passed |
-| `npm test` | 5 passed in 9.2 seconds: 3 UI and 2 API |
-| `npm run test:reliability` | 10 passed in 19.8 seconds: all five cases repeated twice |
+| `npm test` | 5 passed in 13.1 seconds: 3 UI and 2 API |
+| `npm run test:reliability` | 10 passed in 17.9 seconds: all five cases repeated twice |
 | Parallel workers / retries | 2 / 0 |
 | Appointment teardown | Created records deleted; subsequent GET returns 404 |
 
-The normal run passed immediately after the reliability run, confirming that teardown permits the next run. No tests were skipped or marked as expected failures.
+The normal run and then the reliability run passed sequentially, confirming that teardown permits the next run. No tests were skipped or marked as expected failures.
 
 The happy path verified the actual success screen, appointment identity, client name, selected date/time, service, 100 UAH price, and 30-minute duration. A separate GET verified persisted data before fixture teardown. The HTML report includes `created-appointment` and `appointment-cleanup` attachments. Validation cases reached the real contact form and asserted disabled submission.
 
@@ -43,3 +43,5 @@ The initial Pro period is seven days. Continued booking availability depends on 
 The earlier implementation targeted `/barbershop-kyiv` without proving ownership. Its plan-limit response was incorrectly attributed to the test account. The suite now uses the new account's verified slug.
 
 Early live runs exposed shared-slot conflicts and an incorrect repetition count in worker configuration. Date partitioning, explicit reliability configuration, and verified per-test appointment deletion resolved the observed test failures. They were not hidden with sleeps, retries, or skips. Product findings and their limits are documented in [STRATEGY.md](STRATEGY.md).
+
+The first CI reliability run exposed intermittent duplicate HTML IDs for the name and phone inputs. Its trace confirmed that both labels targeted the name field. The page object now scopes inputs by their observed form control attributes, and the defect is recorded as finding 3. Both local suites passed after this adjustment.

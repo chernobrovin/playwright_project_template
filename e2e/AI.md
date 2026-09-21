@@ -11,6 +11,7 @@ The implementation and the revisions were AI-assisted. I do not claim that the c
 The initial implementation needed these corrections:
 
 - Replace guessed, broad locator alternatives with controls observed in the live booking flow.
+- Scope contact controls by observed form attributes after CI exposed duplicate generated IDs and broken accessible labels.
 - Select an actual available date and time instead of assuming the first time label is a bookable slot.
 - Verify the created appointment and its details, rather than treating any text matching "confirmed" as success.
 - Add per-test appointment cleanup and separate date allocations after repeated runs exposed shared state.
