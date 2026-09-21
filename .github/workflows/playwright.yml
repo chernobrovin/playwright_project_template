@@ -1,0 +1,53 @@
+name: Playwright tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One shared public tenant: do not overlap separate workflow runs.
+concurrency:
+  group: natodi-public-booking
+  cancel-in-progress: false
+
+jobs:
+  test:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: e2e
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+      - name: Install dependencies and Chromium
+        run: npm run setup
+      - name: Check TypeScript
+        run: npm run typecheck
+      - name: Run tests
+        run: npm test
+      - name: Repeat suite with two parallel workers and no retries
+        run: npm run test:reliability
+        env:
+          PLAYWRIGHT_HTML_OUTPUT_DIR: reliability-report
+          TEST_RESULTS_DIR: reliability-results
+      - name: Upload reports and failure evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-reports
+          path: |
+            e2e/playwright-report/
+            e2e/reliability-report/
+            e2e/test-results/
+            e2e/reliability-results/
+          retention-days: 14

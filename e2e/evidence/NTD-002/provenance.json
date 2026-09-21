@@ -1,0 +1,6 @@
+{
+  "sourceRun": "https://github.com/chernobrovin/playwright_project_template/actions/runs/35545954117",
+  "sourceCommit": "61dd4eeaaf95c0c46c86c6a237b39ca510dfd0cd",
+  "sourceTraceSha256": "9f538060461fd59964bf839a4cee0c16929b577e3727d486de77f4fdde5e2070",
+  "description": "Unmodified failure screenshot; DOM attributes extracted from the original trace; accessibility snapshot extracted from the failure context. Full trace is not published in git."
+}

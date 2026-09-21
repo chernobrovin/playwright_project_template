@@ -1,0 +1,15 @@
+- button
+- text: Контакти для запису Ім'я *
+- textbox "Ім'я * Телефон *":
+  - /placeholder: ""
+- text: Прізвище
+- textbox "Прізвище":
+  - /placeholder: ""
+- text: Телефон *
+- textbox "+380 (---) --- -- --"
+- text: Соцмережі (необов'язково)
+- textbox "@instagram"
+- textbox "@telegram"
+- text: Email (необов'язково)
+- textbox "email@example.com"
+- button "Записатись" [disabled]

@@ -1,5 +1,12 @@
 node_modules/
-/test-results/
-/playwright-report/
-/blob-report/
-/playwright/.cache/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+.env
+.env.*
+!.env.example
+reliability-report/
+reliability-results/
+playwright/.auth/
+.playwright-cli/

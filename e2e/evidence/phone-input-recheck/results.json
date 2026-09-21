@@ -1,0 +1,19 @@
+{
+  "verifiedAt": "2026-09-21",
+  "page": "https://book.natodi.com/qa-barbershop-0921",
+  "input": "+380000000001",
+  "observations": [
+    {
+      "method": "Control+V",
+      "trustedPasteEvent": true,
+      "actual": "+38 (000) 000-0001",
+      "digitsPreserved": true
+    },
+    {
+      "method": "Playwright locator.fill",
+      "actual": "+38 (380) 000-0000",
+      "digitsPreserved": false
+    }
+  ],
+  "decision": "Withdraw the clipboard-paste defect; keep national-digit input as an automation workaround."
+}

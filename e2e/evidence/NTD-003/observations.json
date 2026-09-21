@@ -1,0 +1,29 @@
+{
+  "verifiedAt": "2026-09-21",
+  "environment": {
+    "page": "https://admin.natodi.com/analytics",
+    "browser": "Chromium 153.0.8010.48",
+    "platform": "Windows",
+    "locale": "uk-UA",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    }
+  },
+  "period": "Попередні 30 днів",
+  "observations": {
+    "Чистий прибуток": "null",
+    "Середній чек": "null",
+    "Середня завантаженість": "0%",
+    "Загальна кількість записів": "0",
+    "Кількість завершених": "0",
+    "Кількість скасованих": "0"
+  },
+  "reproducedAfterReload": true,
+  "capture": {
+    "file": "analytics-empty.png",
+    "scope": "Analytics iframe only; account sidebar and authentication URLs excluded",
+    "sha256": "de8414e56b546a888faf20de4c7eb46c6bb35a76b1adb459c7da8d7b22add530"
+  },
+  "limits": "UI empty-state presentation verified; no claim about the correctness of financial calculations with real revenue."
+}

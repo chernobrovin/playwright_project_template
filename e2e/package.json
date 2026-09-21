@@ -1,19 +1,24 @@
 {
-  "name": "e2e",
+  "name": "natodi-qa-test-task",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {},
-  "repository": {
-    "type": "git",
-    "url": "https://git.graphio.ai/graphio.ai/aqa.git"
-},
-
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "private": true,
+  "description": "Playwright + TypeScript test task for the Natodi booking flow",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "setup": "npm ci && playwright install --with-deps chromium",
+    "test": "playwright test",
+    "test:ui": "playwright test src/tests/booking",
+    "test:api": "playwright test src/tests/api",
+    "test:headed": "playwright test src/tests/booking --headed",
+    "test:reliability": "playwright test --config=playwright.reliability.config.ts",
+    "report": "playwright show-report",
+    "typecheck": "tsc --noEmit"
+  },
   "devDependencies": {
-    "@playwright/test": "^1.46.0",
-    "@types/node": "^22.1.0"
+    "@playwright/test": "1.63.0",
+    "@types/node": "22.1.0",
+    "typescript": "5.9.3"
   }
 }

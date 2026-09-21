@@ -1,0 +1,55 @@
+{
+  "verifiedAt": "2026-09-21",
+  "referralCard": {
+    "page": "https://admin.natodi.com/subscriptions",
+    "browser": "Chromium 153.0.8010.48",
+    "height": 900,
+    "label": "Отримати посилання",
+    "widthChecks": [
+      {
+        "viewportWidth": 1280,
+        "actionWidthPx": 121,
+        "actionScrollWidthPx": 188,
+        "illustrationOverlapsLabel": true
+      },
+      {
+        "viewportWidth": 1366,
+        "actionWidthPx": 136,
+        "actionScrollWidthPx": 188,
+        "illustrationOverlapsLabel": true
+      },
+      {
+        "viewportWidth": 1920,
+        "actionWidthPx": 192,
+        "actionScrollWidthPx": 192,
+        "illustrationOverlapsLabel": false
+      }
+    ],
+    "classification": "Confirmed minor visual issue; not selected for the three-report submission"
+  },
+  "planLimit": {
+    "page": "https://book.natodi.com/barbershop-kyiv",
+    "method": "GET",
+    "endpointPattern": "/api/v1/branches/{slug}/slug",
+    "httpStatus": 400,
+    "errorCode": 4181,
+    "message": "You have exceeded the appointments limit for the free plan (20). Please upgrade your subscription to add more appointments.",
+    "visibleState": "Онлайн запис тимчасово недоступний",
+    "classification": "Not a confirmed defect: a business-limit response is handled by the UI; actual usage of this separate tenant was not independently verified"
+  },
+  "captures": [
+    {
+      "file": "referral-1366.png",
+      "sha256": "9656f678ccdb22d522284c381da8e01abf1215ebc6f019cd6738496b905b05db"
+    },
+    {
+      "file": "referral-1920.png",
+      "sha256": "9a3555861cec607fee1536c8041423fc3efc07958b6d7e25bf803f57b060ac38"
+    },
+    {
+      "file": "plan-limit-state.png",
+      "sha256": "4ae4c57a1d83a13b53a5edd6d742882181534952eb0e6555f8c6b67b3154f282"
+    }
+  ],
+  "privacy": "Fresh focused UI captures were used. Original user screenshots with personal or payment details were not committed."
+}

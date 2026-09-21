@@ -1,0 +1,33 @@
+{
+  "sourceRun": "https://github.com/chernobrovin/playwright_project_template/actions/runs/35554381567",
+  "pullRequestHead": "ab38526a26c0b176c37aa466f253ea7955bcb14d",
+  "testedCommit": "4b7dc5e2a1ff465fa93f4231bf5f95f339c3e140",
+  "matchingTree": "79dacd94cd3b6eb7d213468ae553d0ec0b51455a",
+  "sourceArtifactId": 10619103442,
+  "reports": {
+    "normal": {
+      "stats": {
+        "total": 5,
+        "expected": 5,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      },
+      "durationMs": 10303.347,
+      "sha256": "7617ece85b6acbf14be6156a2f8e8174ce352035f9dc854f55bb814f7ea3a0ed"
+    },
+    "reliability": {
+      "stats": {
+        "total": 10,
+        "expected": 10,
+        "unexpected": 0,
+        "flaky": 0,
+        "skipped": 0,
+        "ok": true
+      },
+      "durationMs": 17350.865999999998,
+      "sha256": "69d8ef9ba7a732e21a0fe45238191c73fa6935fdd43cd6b4bff20c455d53341f"
+    }
+  }
+}
