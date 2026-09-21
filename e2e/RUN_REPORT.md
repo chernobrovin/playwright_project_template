@@ -1,12 +1,35 @@
 # Test Run Report
 
-## Verified CI execution and permanent reports
+## Final setup and persisted-booking verification
 
-[CI run 35546252608](https://github.com/chernobrovin/playwright_project_template/actions/runs/35546252608) passed TypeScript, 5/5 normal tests (11.9 s), and 10/10 reliability executions (21.1 s), with two workers and zero retries. Tested commit: `c74f6d3886b6a779b257c16c99950a993e8759bd`.
+Verified September 21, 2026. PR head: `ab38526a26c0b176c37aa466f253ea7955bcb14d`. [CI run 35554381567](https://github.com/chernobrovin/playwright_project_template/actions/runs/35554381567) passed on Ubuntu with Node.js 22. The checked-out PR merge revision has the same Git tree as that head; the [report archive](reports/README.md) records both revisions and retains the original HTML files.
+
+A separate clean clone had no `node_modules`, `.env`, or saved authentication. In Windows PowerShell 5.1.26100.9444 with Node.js 22.14.0 and npm 10.9.2, these two commands completed successfully from `e2e`:
+
+```bash
+npm run setup
+npm test
+```
+
+Setup downloaded Chromium into an empty browser directory and installed the locked dependencies. CI used the same setup command, including Linux system dependencies.
+
+| Check | Clean Windows PowerShell 5 clone | Ubuntu CI |
+| --- | --- | --- |
+| TypeScript | Passed | Passed |
+| Normal suite | 5 passed in 13.0 s | 5 passed in 10.3 s |
+| Reliability suite | 10 passed in 17.3 s | 10 passed in 17.4 s |
+| Workers / retries | 2 / 0 | 2 / 0 |
+| Created appointments | All three deleted; GET confirmed 404 | All three deleted; GET confirmed 404 |
+
+The happy path now checks the same business expectations in the creation response and subsequent GET: status, client, branch, service, quantity, 100 UAH price, and 30-minute duration. It also checks the selected date/time, saved record identity, and visible confirmation. Both suites passed with no skipped, failed, or flaky cases. The code and dependencies in the clean clone stayed unchanged after execution.
+
+## Earlier CI baseline and permanent reports
+
+[CI run 35546252608](https://github.com/chernobrovin/playwright_project_template/actions/runs/35546252608) passed TypeScript, 5/5 normal tests (11.9 s), and 10/10 reliability executions (21.1 s), with two workers and zero retries. PR head: `c74f6d3886b6a779b257c16c99950a993e8759bd`.
 
 The original [HTML reports and machine-readable summary](reports/README.md) are committed in this repository. Their embedded test results were read back and their SHA-256 hashes match the downloaded CI files. These snapshots describe that tested commit; current-commit status is shown in the PR checks.
 
-## Verified local execution
+## Earlier local baseline
 
 Date: September 21, 2026 (Europe/Kyiv). Environment: Windows, Node.js 22.14.0, npm 10.9.2, Playwright 1.63.0, Chromium, Ukrainian UI.
 
