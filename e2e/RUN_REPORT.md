@@ -42,7 +42,7 @@ The old company deletion was confirmed by Natodi's UI. A new alias account was r
 
 The registration flow did not present an email-confirmation step, and no confirmation email was found. Access and booking work, but email verification is not claimed. Optional Telegram integration and optional street address were left unset.
 
-The initial Pro period is seven days. Continued booking availability depends on the tenant's subscription and schedule. This report does not guarantee indefinite access or establish that a separate Free route is unavailable.
+Subscription follow-up on September 21, 2026: renewal was cancelled through Natodi's UI. After reloading, the admin page confirmed the cancelled status and access through September 28, 2026. Continued booking availability depends on the plan and schedule; verify access before later runs. This does not establish that a separate Free route is unavailable.
 
 ## Failures investigated before the final runs
 
@@ -54,10 +54,10 @@ The first CI reliability run exposed intermittent duplicate HTML IDs for the nam
 
 ## Evidence review correction
 
-A real Control+V paste preserved the international phone number. The earlier corruption occurred with Playwright fill(), so the clipboard-paste claim was withdrawn. BUGS.md records the comparison and screenshots. The selected reports now cover duplicate contact-input IDs, raw null analytics values, and long-name display problems. The earlier pricing observation is retained in EXPLORATORY_REVIEW.md outside the three-report selection. The subscription remains active at the owner's request.
+A real Control+V paste preserved the international phone number. The earlier corruption occurred with Playwright fill(), so the clipboard-paste claim was withdrawn. BUGS.md records the comparison and screenshots. The selected reports now cover duplicate contact-input IDs, raw null analytics values, and long-name display problems. The earlier pricing observation is retained in EXPLORATORY_REVIEW.md outside the three-report selection.
 
 ## Follow-up to manual exploratory screenshots
 
 The six user-supplied observations were checked in live Chromium 153.0.8010.48 on Windows. Analytics displayed two `null` values with zero appointment counters after reload. A temporary service/category reproduced three long-name layout symptoms; the clear button and category switching still worked. The service was disabled in the public widget, and both temporary records were deleted with successful responses and follow-up checks. `QA Haircut` remained present.
 
-The referral-card label overlapped at 1280/1366 px and fit at 1920 px. The separate `barbershop-kyiv` page returned HTTP 400 / business code 4181 and a handled unavailable-booking state; this was not classified as a confirmed bug. Full decisions and privacy-safe evidence are in [EXPLORATORY_REVIEW.md](EXPLORATORY_REVIEW.md). Test implementation and subscription settings were unchanged.
+The referral-card label overlapped at 1280/1366 px and fit at 1920 px. The separate `barbershop-kyiv` page returned HTTP 400 / business code 4181 and a handled unavailable-booking state; this was not classified as a confirmed bug. Full decisions and privacy-safe evidence are in [EXPLORATORY_REVIEW.md](EXPLORATORY_REVIEW.md). That exploratory pass did not change the test implementation or subscription settings; the later subscription cancellation is recorded above.

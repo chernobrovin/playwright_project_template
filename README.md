@@ -1,14 +1,14 @@
 # Natodi QA Test Task
 
-Five focused Playwright + TypeScript tests: three checks of the real Natodi booking UI and two public REST API checks.
+A focused Playwright + TypeScript suite for Natodi's public booking flow. The approach prioritizes correct bookings, useful failure evidence, and repeatable execution with isolated test data.
 
-Public booking: https://book.natodi.com/qa-barbershop-0921
+The submission contains three UI scenarios and two public REST API tests. The [archived CI reports](e2e/reports/README.md) record 5/5 passing tests and 10/10 passing executions in the repeated suite, with two workers and zero retries. [PR checks](https://github.com/chernobrovin/playwright_project_template/pull/1) show results for the current revision.
 
-Submission branch: [`natodi-test-task`](https://github.com/chernobrovin/playwright_project_template/tree/natodi-test-task). Start with the [one-page strategy](e2e/STRATEGY.pdf), [detailed findings](e2e/BUGS.md), [AI disclosure](e2e/AI.md), and [archived reports](e2e/reports/README.md).
+**Submission:** [`natodi-test-task`](https://github.com/chernobrovin/playwright_project_template/tree/natodi-test-task). **Booking page:** [QA Barbershop 0921](https://book.natodi.com/qa-barbershop-0921).
 
 ## Quick start
 
-Prerequisite: Node.js 22 or newer. From `e2e`, install and run with two commands:
+Prerequisite: Node.js 22 or newer. Check out the submission branch and open its `e2e` directory, then install and run with two commands:
 
 ```bash
 npm ci && npx playwright install chromium
@@ -26,19 +26,21 @@ npm run test:reliability
 npm run report
 ```
 
-The reliability configuration runs the whole suite twice with two workers, full parallelism, and zero retries. CI runs type checking, the normal suite, and the reliability suite, then uploads both HTML reports and any failure evidence.
+## Coverage and the risks it addresses
 
-## Coverage
+| Scenario | Evidence checked |
+| --- | --- |
+| Complete a booking | Select `QA Haircut`, an available future slot, and synthetic contact details. Check the confirmation, appointment identity, client, service, date/time, 100 UAH price, and 30-minute duration. Read the saved appointment through Natodi's API. |
+| Incomplete phone number | Check validation feedback, disabled submission, and that the client remains on the contact form. |
+| Missing required name | Establish that the complete form can be submitted, clear the name, and check that submission becomes disabled. |
+| Successful public REST request | Check HTTP 200, the todo's runtime schema, and expected field values. |
+| Unknown REST resource | Check HTTP 404 and the empty response object. |
 
-- A client selects `QA Haircut`, an available future slot, and valid synthetic contact details. The test checks the success page and persisted appointment, including client, service, date, time, price, and duration.
-- An incomplete phone number shows validation feedback and prevents submission.
-- A missing name prevents submission when the remaining contact fields are valid.
-- JSONPlaceholder returns a successful todo with the expected schema and values.
-- An unknown todo returns HTTP 404 and an empty response object.
+The two REST tests use JSONPlaceholder, as the assignment permits any public REST API. The booking scenario also checks Natodi's persisted data, connecting visible success to a saved business record.
 
-These REST checks use a separate public API, as allowed by the assignment. The UI happy path additionally verifies persistence through Natodi's API.
+The [strategy](e2e/STRATEGY.md) explains the wider product priorities, the division between automation and exploratory work, and the proposed process for maintaining coverage with AI under QA review.
 
-## Structure and isolation
+## Architecture and engineering decisions
 
 ```text
 e2e/
@@ -54,15 +56,28 @@ e2e/
   RUN_REPORT.md
 ```
 
-The page object owns observed UI interactions. Specs express business assertions. A fixture records and deletes only appointments created by its own test, including after an assertion failure, and checks that they return 404 afterward. Synthetic client profiles can remain in this dedicated tenant; no broad customer deletion is attempted.
+| Responsibility | Reason for the boundary |
+| --- | --- |
+| Specs express business outcomes | A reviewer can see what must remain true for the client and the saved appointment. |
+| The page object handles UI interactions | Locators, availability discovery, and navigation stay in one place when the UI changes. |
+| The fixture owns appointment cleanup | Teardown runs after each case, including assertion failures, and verifies deletion with a subsequent HTTP 404. |
+| A data factory creates synthetic contacts | Each scenario receives a unique name and reserved `example.com` address; non-subscriber phone numbers avoid contacting real clients. |
 
-Tests generate unique names, reserved `example.com` email addresses, and non-subscriber phone numbers. No admin credentials are needed. Service selection uses accessible locators and visible text; the unnamed add button is scoped to the matching `app-short-info-card`. Contact inputs use observed `formcontrolname` containers because duplicate product-generated IDs can break their accessible names (see NTD-002 in BUGS.md).
+The fixture deletes only appointment IDs recorded by its own test. Synthetic client profiles can remain in this dedicated tenant. Admin credentials and browser authentication state are not required by the suite.
 
-Availability comes from the live UI requests. Tests use future dates within 14 days in `Europe/Kyiv`; calendar dates are partitioned by scenario and repetition so concurrent checks do not compete for a slot. No fixed sleeps, skipped tests, or retries conceal failures. Separate CI runs are serialized because they share a tenant. Avoid running a local suite while CI is active.
+Locators use roles and visible text where the observed UI supports them. The unnamed add button is scoped to the matching service card. Contact fields use their `formcontrolname` containers because Natodi can generate duplicate IDs and incorrect accessible names. [NTD-002](e2e/BUGS.md#ntd-002-duplicate-input-ids-associate-both-contact-labels-with-the-name-field) documents the product issue separately from the locator workaround.
 
-## Configuration and prerequisites
+## Time, state, and reliability
 
-Defaults:
+The suite reads availability from live UI requests and selects a future date within 14 days in `Europe/Kyiv`. Calendar dates are partitioned by scenario and repetition, which prevents cases in the same run from competing for a slot. Each case creates its own browser context and contact data.
+
+The reliability configuration repeats the entire suite twice with two workers, full parallelism, and zero retries. CI runs type checking, the normal suite, and the repeated suite. There are no fixed sleeps or skipped cases. Separate CI runs are serialized because they share one tenant; avoid overlapping a local run with CI.
+
+This controls test-created conflicts. The live service still determines availability. For a controlled test environment, the strategy adds seeded schedules and a controllable backend clock to make exact time-boundary checks deterministic.
+
+## Configuration and tenant prerequisites
+
+The current assignment specifies a booking page created during registration. This suite uses the configured test company's page.
 
 ```text
 BOOKING_ORIGIN=https://book.natodi.com
@@ -70,16 +85,18 @@ BOOKING_PATH=/qa-barbershop-0921
 SERVICE_NAME=QA Haircut
 ```
 
-Set environment variables to override these values. `.env.example` documents the names; the runner does not automatically load `.env` files. A replacement tenant must provide a service priced at 100 UAH with a 30-minute duration and an assigned employee with available hours.
+Set environment variables to override these values. `.env.example` documents the names; the runner does not automatically load `.env` files. A replacement Natodi tenant must provide a service priced at 100 UAH with a 30-minute duration and an assigned employee with available hours.
 
-The configured employee works 09:00-18:00 daily through October 31, 2026. Extend the schedule before that date. The live tenant must have an active plan allowing bookings; its initial Pro period is seven days from September 21, 2026. These are external prerequisites, not guarantees of indefinite availability. A blocked tenant fails with the API status and error details.
+Working hours are configured for 09:00-18:00 daily through October 31, 2026. Subscription renewal was cancelled on September 21; Natodi confirmed access through September 28, 2026. Before running after that date, verify booking access and extend the schedule when needed. A blocked tenant fails with the actual API status and error details.
 
-## Reports and notes
+## Reports and review material
 
-`npm test` writes `e2e/playwright-report/index.html`. Failures retain a trace, screenshot, and video. CI puts the repeated run in a separate `reliability-report` directory. The [committed report archive](e2e/reports/README.md) contains the original successful HTML reports and their checksums, so evidence remains available after CI artifacts expire. Current runs also upload the `playwright-reports` artifact.
+`npm test` writes `e2e/playwright-report/index.html`. Failures retain a trace, screenshot, and video. CI stores the repeated run in `reliability-report` and uploads both reports as `playwright-reports`.
 
-- [Test strategy](e2e/STRATEGY.md) and [one-page PDF](e2e/STRATEGY.pdf)
-- [Three selected bug reports and evidence](e2e/BUGS.md)
-- [Review of six manual observations and additional findings](e2e/EXPLORATORY_REVIEW.md)
-- [AI contribution and corrected mistakes](e2e/AI.md)
+The [committed report archive](e2e/reports/README.md) preserves the original successful HTML reports, tested commit, and checksums. That evidence remains available after CI artifacts expire.
+
+- [One-page QA strategy](e2e/STRATEGY.md) and [PDF](e2e/STRATEGY.pdf)
+- [Three selected bug reports with evidence](e2e/BUGS.md)
+- [Triage of six manual observations and additional findings](e2e/EXPLORATORY_REVIEW.md)
+- [AI delegation, review decisions, and a corrected model error](e2e/AI.md)
 - [Execution evidence and environment limits](e2e/RUN_REPORT.md)

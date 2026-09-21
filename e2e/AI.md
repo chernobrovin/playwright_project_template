@@ -1,31 +1,42 @@
-# AI Usage
+# AI-assisted delivery and QA judgment
+
+I defined the QA approach, supplied my earlier automation framework as a reference, and used AI to implement and investigate the focused submission. My contribution centered on coverage decisions, exploratory testing, and review of the evidence behind the result.
 
 ## What I delegated
 
-I used AI to compare an earlier Playwright framework with the assignment, draft the TypeScript implementation, inspect the live UI, configure the requested test tenant, run tests and CI, investigate failures, and prepare documentation. AI also performed the follow-up evidence review and prepared the screenshots, DOM extracts, and archived reports.
+- Compare the reference framework with the assignment and implement a focused Playwright + TypeScript suite: page object, fixtures, data generation, UI cases, and API checks.
+- Inspect the live booking flow, configure the test tenant, run local and CI checks, and investigate failures using browser traces, network responses, and the observed DOM.
+- Reproduce exploratory observations, prepare focused evidence, archive the generated reports, and draft the submission documents under review.
 
-## What I rewrote by hand
+## My contribution and revision decisions
 
-I did not hand-write or manually rewrite the code in this submission. The implementation and subsequent revisions were AI-assisted. My contribution was to define the scope and quality expectations, provide my earlier framework as a reference, challenge conclusions, and request another requirement-by-requirement review before submission. The corrections below must not be interpreted as code I typed manually.
+I set the direction: demonstrate engineering judgment through a small, maintainable suite, combine automation with exploratory work, and retain human approval of AI recommendations. I supplied six screenshots from my own testing and asked for reproduction and an assessment of their significance before adding findings. I also challenged whether a locator workaround invalidated the duplicate-ID report and requested a requirement-by-requirement review.
 
-The AI-assisted revisions replaced guessed locators with observed controls, selected live availability, asserted persisted appointment data, added isolated date allocation and cleanup, and checked repeated parallel execution with no retries. Contact fields use observed form-control attributes because the product can generate duplicate IDs.
+For the assignment's question about hand-written revisions: AI produced the TypeScript implementation and subsequent code revisions. My hands-on work was exploratory testing, defining the QA strategy, and challenging scope and conclusions. I directed the follow-up reviews toward evidence quality and requirement coverage.
 
-## One specific model error caught during review
+Those reviews led to concrete corrections:
 
-An AI-generated bug report claimed that pasting an international phone number corrupted it. The initial observation actually used Playwright `fill()`, which is a different input method.
+- Reproduce the reported user action before calling a symptom a product defect. The phone-paste report was withdrawn after the comparison below.
+- Separate automation resilience from product quality. Scoping fields by `formcontrolname` supports the tests; the captured label-association defect remains documented with DOM and accessibility evidence.
+- Rate findings by demonstrated impact. The long-name clear button still worked, so the report describes a Low-severity presentation defect. The plan-limit response alone did not prove a subscription bug.
 
-I requested a second review of the assignment and findings. The AI-assisted recheck used a real `Control+V` action and recorded a trusted browser paste event. Pasting `+380000000001` correctly produced `+38 (000) 000-0001`. Repeating `fill()` produced `+38 (380) 000-0000`.
+The implementation also evolved through AI-assisted debugging: observed controls replaced guessed locators, booking assertions included saved data, and date partitioning plus verified cleanup resolved test-created conflicts. The repeated CI suite checks these choices with two workers and zero retries. [Execution evidence](RUN_REPORT.md) records the results and remaining environment dependencies.
 
-The clipboard-paste defect was withdrawn. The [screenshots and recorded values](evidence/phone-input-recheck/results.json) preserve the correction. The test suite uses national digits as an automation workaround. A method-specific observation is insufficient evidence for a broader claim about user behavior.
+## One specific model error corrected through review
 
-An earlier model error also combined a company path in `baseURL` with `page.goto('/')`, which navigated to the origin root. The current implementation keeps the origin and explicit booking path separate. It also verifies ownership of the target tenant instead of attributing another tenant's plan limit to the supplied promo.
+AI initially reported that pasting an international phone number corrupted it. The observation came from Playwright `fill()`, which does not reproduce a clipboard paste.
 
-## Human exploratory findings and AI-assisted verification
+During the second review I requested, the AI-assisted investigation used real `Control+V` and recorded a trusted browser paste event. Pasting `+380000000001` produced the correct `+38 (000) 000-0001`; repeating `fill()` produced `+38 (380) 000-0000`.
 
-I supplied six screenshots from my own exploratory testing and asked for their significance to be checked before inclusion. The follow-up reproduced the UI symptoms with fresh screenshots and DOM measurements, checked the functioning clear button, and treated the 20-appointment response as insufficient evidence of a bug. It selected analytics empty-state and long-name findings for the limited submission and documented the other observations separately. These symptoms were human-discovered; AI performed the follow-up verification and documentation. Temporary service/category records were cleaned up afterward.
+The final reports withdraw the clipboard-paste claim and preserve the [comparison evidence](evidence/phone-input-recheck/results.json). The suite supplies national digits for this input mask. My review criterion is that a bug report must describe the interaction actually reproduced and explain its user impact; an automation-method difference is not enough to generalize to normal user behavior.
 
-## Proposed human review loop
+## How I would scale this approach
 
-A coverage agent could compare code changes, API contracts, documentation, and completed issues, then propose tests to add, update, or remove. QA approves proposals and translates rejected suggestions into explicit rules and examples. This is agent calibration, not model fine-tuning.
+My proposed workflow combines a maintained regression suite, AI-assisted analysis, and manual QA under human review:
 
-A second agent could investigate failures using traces, logs, code, and expected behavior, then show evidence and confidence in a dashboard. A human would approve test changes or issue creation. Requirement analysis and exploratory testing remain part of the workflow. These agents and the dashboard are a proposed approach, not implemented deliverables in this repository.
+1. **Review requirements and explore new behavior.** QA clarifies expected outcomes and risks with the team. AI suggests cases and edge conditions; manual exploration checks assumptions. Automate critical contracts before release, and expand UI regression when behavior stabilizes.
+2. **Review coverage as the product changes.** A daily agent compares merged code, API contracts, documentation, and completed issues. It proposes tests to add, update, or retire, with the source change, affected risk, and rationale. QA approves the proposal before implementation.
+3. **Investigate failures with context.** A second agent reviews traces, logs, code changes, and expected behavior. A dashboard shows evidence, a proposed classification, and uncertainty. QA distinguishes product defects, changed requirements, test defects, and environment failures before approving an update or creating an issue.
+4. **Improve the decision rules.** Rejected suggestions become corrected instructions, examples, and regression checks for the agents. Track accepted recommendations, incorrect diagnoses, flaky-test frequency, and investigation time to assess whether the workflow helps. This is improvement of the agents' operating rules, not a claim of model fine-tuning.
+
+The submitted repository implements the focused test suite and execution evidence. The agents, dashboard, and measurements describe the next stage of the QA operating model.
